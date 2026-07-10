@@ -1,4 +1,5 @@
 using SpaceMaintenance.Core;
+using SpaceMaintenance.Core.Data;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ namespace SpaceMaintenance.Damage
             if (IsServer)
             {
                 HullIntegrity.Value = MaxHullIntegrity.Value;
+                PublishHullUpdate();
             }
         }
 
@@ -30,10 +32,11 @@ namespace SpaceMaintenance.Damage
             if (!IsServer) return;
             
             HullIntegrity.Value = Mathf.Max(0, HullIntegrity.Value - amount);
+            PublishHullUpdate();
             
             if (HullIntegrity.Value <= 0)
             {
-                EventBus.Publish(new SpaceMaintenance.Core.Data.ChaosEventTriggered { EventName = "Hull Breach - Game Over" });
+                EventBus.Publish(new ChaosEventTriggered { EventName = "Hull Breach - Game Over" });
             }
         }
 
@@ -41,6 +44,16 @@ namespace SpaceMaintenance.Damage
         {
             if (!IsServer) return;
             HullIntegrity.Value = Mathf.Min(MaxHullIntegrity.Value, HullIntegrity.Value + amount);
+            PublishHullUpdate();
+        }
+
+        private void PublishHullUpdate()
+        {
+            EventBus.Publish(new HullIntegrityUpdatedEvent
+            {
+                Current = HullIntegrity.Value,
+                Max = MaxHullIntegrity.Value
+            });
         }
     }
 }

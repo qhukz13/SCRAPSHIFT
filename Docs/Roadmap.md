@@ -20,7 +20,7 @@
 - [x] Network Game Manager & Spawning
 
 ## Phase 5: Polish & Game Loop (Pending)
-- [ ] Mission UI, Win/Lose conditions
+- [x] Mission UI, Win/Lose conditions
 - [x] Main Menu and Lobby UI
 - [ ] Audio and Visual Effects
 - [ ] Playtesting and Bug Fixing

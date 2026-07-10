@@ -1,4 +1,11 @@
+// ============================================================================
+// SCRAPSHIFT — MissionResultUI.cs
+// End-of-mission result screen. Subscribes to GameOverEvent from EventBus.
+// Displays victory/defeat, reason, and mission statistics.
+// ============================================================================
+
 using SpaceMaintenance.Core;
+using SpaceMaintenance.Core.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,10 +14,20 @@ namespace SpaceMaintenance.Missions.UI
 {
     public class MissionResultUI : MonoBehaviour
     {
+        [Header("Result Panel")]
         [SerializeField] private GameObject _resultPanel;
         [SerializeField] private TextMeshProUGUI _resultTitle;
         [SerializeField] private TextMeshProUGUI _resultDescription;
         [SerializeField] private Button _restartButton;
+
+        [Header("Statistics")]
+        [SerializeField] private TextMeshProUGUI _statsText;
+
+        // Cached mission data for statistics display
+        private float _lastTimeRemaining;
+        private float _totalTime;
+        private int _tasksCompleted;
+        private int _tasksRequired;
 
         private void Awake()
         {
@@ -20,24 +37,33 @@ namespace SpaceMaintenance.Missions.UI
 
         private void OnEnable()
         {
-            EventBus.Subscribe<Core.Data.ChaosEventTriggered>(OnGameOver);
+            EventBus.Subscribe<GameOverEvent>(OnGameOver);
+            EventBus.Subscribe<MissionTimerUpdatedEvent>(OnTimerUpdated);
+            EventBus.Subscribe<TaskProgressUpdatedEvent>(OnTaskProgressUpdated);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<Core.Data.ChaosEventTriggered>(OnGameOver);
+            EventBus.Unsubscribe<GameOverEvent>(OnGameOver);
+            EventBus.Unsubscribe<MissionTimerUpdatedEvent>(OnTimerUpdated);
+            EventBus.Unsubscribe<TaskProgressUpdatedEvent>(OnTaskProgressUpdated);
         }
 
-        private void OnGameOver(Core.Data.ChaosEventTriggered evt)
+        private void OnTimerUpdated(MissionTimerUpdatedEvent evt)
         {
-            if (evt.EventName.Contains("Game Over"))
-            {
-                ShowResult(false, "Hull Integrity Reached 0. Ship Destroyed.");
-            }
-            else if (evt.EventName.Contains("Victory"))
-            {
-                ShowResult(true, "You successfully completed the mission!");
-            }
+            _lastTimeRemaining = evt.TimeRemaining;
+            _totalTime = evt.TotalTime;
+        }
+
+        private void OnTaskProgressUpdated(TaskProgressUpdatedEvent evt)
+        {
+            _tasksCompleted = evt.Completed;
+            _tasksRequired = evt.Required;
+        }
+
+        private void OnGameOver(GameOverEvent evt)
+        {
+            ShowResult(evt.IsVictory, evt.Reason);
         }
 
         public void ShowResult(bool isVictory, string message)
@@ -56,6 +82,23 @@ namespace SpaceMaintenance.Missions.UI
                 {
                     _resultDescription.text = message;
                 }
+
+                // Build statistics string
+                if (_statsText != null)
+                {
+                    float timeSurvived = _totalTime - _lastTimeRemaining;
+                    int minutes = Mathf.FloorToInt(timeSurvived / 60f);
+                    int seconds = Mathf.FloorToInt(timeSurvived % 60f);
+
+                    string stats = $"Time Survived: {minutes:00}:{seconds:00}";
+
+                    if (_tasksRequired > 0)
+                    {
+                        stats += $"\nTasks Completed: {_tasksCompleted} / {_tasksRequired}";
+                    }
+
+                    _statsText.text = stats;
+                }
                 
                 Cursor.lockState = CursorLockMode.None;
             }
@@ -63,8 +106,9 @@ namespace SpaceMaintenance.Missions.UI
 
         private void OnRestartClicked()
         {
-            // Simple reload of the active scene
-            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
         }
     }
 }
+

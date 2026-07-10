@@ -1,4 +1,5 @@
 using SpaceMaintenance.Core;
+using SpaceMaintenance.Core.Data;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -21,7 +22,8 @@ namespace SpaceMaintenance.Missions
             if (IsServer)
             {
                 TasksCompleted.Value = 0;
-                EventBus.Subscribe<SpaceMaintenance.Core.Data.SystemRepairedEvent>(OnSystemRepaired);
+                EventBus.Subscribe<SystemRepairedEvent>(OnSystemRepaired);
+                PublishTaskProgress();
             }
         }
 
@@ -29,16 +31,32 @@ namespace SpaceMaintenance.Missions
         {
             if (IsServer)
             {
-                EventBus.Unsubscribe<SpaceMaintenance.Core.Data.SystemRepairedEvent>(OnSystemRepaired);
+                EventBus.Unsubscribe<SystemRepairedEvent>(OnSystemRepaired);
             }
         }
 
-        private void OnSystemRepaired(SpaceMaintenance.Core.Data.SystemRepairedEvent evt)
+        private void OnSystemRepaired(SystemRepairedEvent evt)
         {
             if (!IsServer) return;
             
             TasksCompleted.Value++;
             Debug.Log($"Task Completed! Total: {TasksCompleted.Value}");
+            PublishTaskProgress();
+        }
+
+        private void PublishTaskProgress()
+        {
+            int required = 0;
+            if (RoundManager.Instance != null && RoundManager.Instance.GetConfig() != null)
+            {
+                required = RoundManager.Instance.GetConfig().TasksRequired;
+            }
+
+            EventBus.Publish(new TaskProgressUpdatedEvent
+            {
+                Completed = TasksCompleted.Value,
+                Required = required
+            });
         }
     }
 }
