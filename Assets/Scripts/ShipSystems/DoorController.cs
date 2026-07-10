@@ -7,6 +7,7 @@
 
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Core.Data;
+using SpaceMaintenance.Audio;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -356,6 +357,23 @@ namespace SpaceMaintenance.ShipSystems
         private void OnStateChangedCallback(DoorState oldState, DoorState newState)
         {
             UpdateVisuals(newState);
+            
+            if (AudioManager.Instance != null && AudioManager.Instance.Database != null)
+            {
+                AudioClip clipToPlay = null;
+                switch (newState)
+                {
+                    case DoorState.Open: clipToPlay = AudioManager.Instance.Database.DoorOpen; break;
+                    case DoorState.Closed: clipToPlay = AudioManager.Instance.Database.DoorClose; break;
+                    case DoorState.Locked: clipToPlay = AudioManager.Instance.Database.DoorLocked; break;
+                    case DoorState.Broken: clipToPlay = AudioManager.Instance.Database.DoorBroken; break;
+                }
+                
+                if (clipToPlay != null)
+                {
+                    AudioManager.Instance.PlaySFX(clipToPlay, transform.position);
+                }
+            }
         }
 
         private void UpdateVisuals(DoorState state)

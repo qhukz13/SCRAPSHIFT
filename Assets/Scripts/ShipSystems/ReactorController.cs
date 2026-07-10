@@ -7,6 +7,7 @@
 
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Core.Data;
+using SpaceMaintenance.Audio;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -361,6 +362,16 @@ namespace SpaceMaintenance.ShipSystems
         private void OnStateChangedCallback(ReactorState oldState, ReactorState newState)
         {
             UpdateVisuals(newState);
+            
+            if (AudioManager.Instance != null && AudioManager.Instance.Database != null)
+            {
+                if (newState == ReactorState.Overheating)
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.Database.ReactorAlarm, transform.position);
+                else if (newState == ReactorState.Critical || newState == ReactorState.Meltdown)
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.Database.GlobalCritical, transform.position);
+                else if (newState == ReactorState.Offline && oldState != ReactorState.Starting)
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.Database.ReactorScram, transform.position);
+            }
         }
 
         private void UpdateVisuals(ReactorState state)

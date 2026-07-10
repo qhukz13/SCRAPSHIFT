@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a7c0771aafc06d4eaac9a8b97de1cdc, type: 3}
+  m_Name: ShipLayoutConfig
+  m_EditorClassIdentifier: 
+  ReactorRoomSize: {x: 15, y: 15}
+  ControlRoomSize: {x: 12, y: 10}
+  StorageRoomSize: {x: 10, y: 12}
+  GeneratorRoomSize: {x: 14, y: 10}
+  CrewQuartersSize: {x: 12, y: 12}
+  HubSize: {x: 6, y: 6}
+  CorridorWidth: 4
+  WallHeight: 6
+  WallThickness: 0.5
+  FloorMaterial: {fileID: 0}
+  WallMaterial: {fileID: 0}
+  HighlightMaterial: {fileID: 0}
+  DoorPrefab: {fileID: 0}
+  BedPrefab: {fileID: 0}
