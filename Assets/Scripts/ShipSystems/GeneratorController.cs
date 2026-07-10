@@ -1,4 +1,5 @@
 using SpaceMaintenance.Core;
+using SpaceMaintenance.Audio;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -61,6 +62,11 @@ namespace SpaceMaintenance.ShipSystems
             {
                 PowerManager.Instance.ConsumePower(_config.GeneratorPowerOutput);
             }
+            
+            if (AudioManager.Instance != null && AudioManager.Instance.Database != null)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.Database.GeneratorBreak, transform.position);
+            }
         }
 
         public void CompleteRepair()
@@ -75,6 +81,12 @@ namespace SpaceMaintenance.ShipSystems
             {
                 PowerManager.Instance.AddPower(_config.GeneratorPowerOutput);
             }
+            
+            if (AudioManager.Instance != null && AudioManager.Instance.Database != null)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.Database.GeneratorFix, transform.position);
+            }
+            
             EventBus.Publish(new SpaceMaintenance.Core.Data.SystemRepairedEvent { SystemName = "Backup Generator" });
         }
     }

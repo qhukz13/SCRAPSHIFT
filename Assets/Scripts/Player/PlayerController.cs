@@ -94,6 +94,8 @@ namespace SpaceMaintenance.Player
             ChangeState(IdleState);
         }
 
+        private float _footstepTimer;
+
         private void Update()
         {
             if (!IsOwner) return;
@@ -103,6 +105,7 @@ namespace SpaceMaintenance.Player
             CameraController.HandleCameraRotation();
             UpdateCrouchVisuals();
             UpdateStamina();
+            UpdateFootsteps();
         }
 
         // =================================================================
@@ -286,6 +289,37 @@ namespace SpaceMaintenance.Player
             CameraController.SetTargetLocalY(
                 Mathf.Lerp(CameraController.CameraLocalY, _targetCameraY, Config.CrouchTransitionSpeed * Time.deltaTime)
             );
+        }
+        private void UpdateFootsteps()
+        {
+            if (!IsGrounded) return;
+            
+            // Calculate horizontal speed only
+            Vector3 horizVel = Rb.linearVelocity;
+            horizVel.y = 0;
+            float speed = horizVel.magnitude;
+            
+            if (speed < 0.5f) return;
+            
+            _footstepTimer -= Time.deltaTime;
+            if (_footstepTimer <= 0f)
+            {
+                float interval = 0.5f;
+                if (IsSprinting) interval = 0.35f;
+                else if (IsCrouching) interval = 0.7f;
+                
+                _footstepTimer = interval;
+                
+                if (SpaceMaintenance.Audio.AudioManager.Instance != null && SpaceMaintenance.Audio.AudioManager.Instance.Database != null)
+                {
+                    var steps = SpaceMaintenance.Audio.AudioManager.Instance.Database.Footsteps;
+                    if (steps != null && steps.Length > 0)
+                    {
+                        var clip = steps[UnityEngine.Random.Range(0, steps.Length)];
+                        SpaceMaintenance.Audio.AudioManager.Instance.PlaySFX(clip, transform.position, 0.5f);
+                    }
+                }
+            }
         }
     }
 }
