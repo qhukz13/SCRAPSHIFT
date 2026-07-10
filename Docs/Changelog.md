@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - **GameEvents**: Added `ReactorStateChangedEvent`, `DoorStateChangedEvent`, `PowerStateChangedEvent`.
 
 ### Added (Previous)
+### Previous
 - Working inventory system (picking up and dropping items, UI slots).
 - Player Crosshair UI.
 - Visual representation and physics for ScrapItem.
