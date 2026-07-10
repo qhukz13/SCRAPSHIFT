@@ -1,5 +1,6 @@
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Core.Data;
+using SpaceMaintenance.Missions.UI;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -18,6 +19,16 @@ namespace SpaceMaintenance.Missions
         {
             if (Instance != null && Instance != this) Destroy(gameObject);
             else Instance = this;
+
+            // Instantiate Mission UI for local client
+            if (FindObjectOfType<MissionResultUI>() == null)
+            {
+                var uiPrefab = Resources.Load<GameObject>("MissionCanvas");
+                if (uiPrefab != null)
+                {
+                    Instantiate(uiPrefab);
+                }
+            }
         }
 
         public override void OnNetworkSpawn()
