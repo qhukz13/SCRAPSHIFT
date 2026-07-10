@@ -3,17 +3,16 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-### Added
-- Mission HUD: MissionHUD.cs with live timer (MM:SS), hull integrity bar, task counter, and warning system.
-- New events: GameOverEvent, MissionTimerUpdatedEvent, HullIntegrityUpdatedEvent, TaskProgressUpdatedEvent in GameEvents.cs.
 
-### Changed
-- WinLoseEvaluator now publishes GameOverEvent via EventBus instead of Debug.Log-only.
-- MissionResultUI refactored to subscribe to GameOverEvent (replaces fragile string matching on ChaosEventTriggered). Now shows mission statistics (time survived, tasks completed).
-- RoundManager publishes MissionTimerUpdatedEvent every frame for HUD.
-- DamageManager publishes HullIntegrityUpdatedEvent on hull changes.
-- MissionManager publishes TaskProgressUpdatedEvent on task completion.
+### Changed — Ship Systems Overhaul
+- **ReactorController**: Full rewrite with 6-state machine (Offline/Starting/Running/Overheating/Critical/Meltdown). Added SCRAM emergency shutdown (IInteractable), accelerating heat in higher states, configurable thresholds, and visual feedback via emissive renderer.
+- **DoorController**: Full rewrite with 4-state machine (Open/Closed/Locked/Broken). Now implements IPowered (manual mode without power, emergency auto-open on power loss), lock bypass via hold-interact, and visual panel feedback.
+- **PowerManager**: Upgraded with IPowered consumer registration, priority-based power distribution, and automatic power cut for low-priority systems.
+- **ChaosManager**: Expanded from 3 to 5 event types — added Door Lock and Power Drain. Added ClientRpc notification for UI.
+- **PowerConfig**: Extended with reactor heat thresholds, cooldown rates, SCRAM timing, door timing, and emergency behavior settings.
+- **GameEvents**: Added `ReactorStateChangedEvent`, `DoorStateChangedEvent`, `PowerStateChangedEvent`.
 
+### Added (Previous)
 ### Previous
 - Working inventory system (picking up and dropping items, UI slots).
 - Player Crosshair UI.

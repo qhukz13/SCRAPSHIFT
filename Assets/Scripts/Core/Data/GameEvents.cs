@@ -50,4 +50,32 @@ namespace SpaceMaintenance.Core.Data
         public int Completed;
         public int Required;
     }
+
+    // =========================================================================
+    // New events for full ship-system mechanics
+    // =========================================================================
+
+    /// <summary>Fired by ReactorController when reactor transitions between states.</summary>
+    public struct ReactorStateChangedEvent
+    {
+        public ReactorState OldState;
+        public ReactorState NewState;
+        public float HeatLevel;
+    }
+
+    /// <summary>Fired by DoorController when a door changes state.</summary>
+    public struct DoorStateChangedEvent
+    {
+        public string DoorId;
+        public DoorState OldState;
+        public DoorState NewState;
+    }
+
+    /// <summary>Fired by PowerManager when power supply/demand changes.</summary>
+    public struct PowerStateChangedEvent
+    {
+        public float CurrentPower;
+        public float MaxPower;
+        public float Demand;
+    }
 }
