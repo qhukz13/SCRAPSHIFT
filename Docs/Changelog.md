@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 - MissionManager publishes TaskProgressUpdatedEvent on task completion.
 
 ### Previous
+- Working inventory system (picking up and dropping items, UI slots).
+- Player Crosshair UI.
+- Visual representation and physics for ScrapItem.
+- Fixed NetworkManager prefab registration and drop coordinates logic.
 - Core Game Loop: DamageManager, ChaosManager, RoundManager, MissionManager, WinLoseEvaluator, MissionResultUI.
 - Repair System: RepairController, RepairProgressUI, IRepairable implementations.
 - Ship Systems: ReactorController, GeneratorController, DoorController, PowerManager.

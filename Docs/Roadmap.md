@@ -8,7 +8,7 @@
 ## Phase 2: Player & Interaction (In Progress)
 - [x] Networked Player Controller
 - [x] Physics Grab System
-- [ ] Basic Inventory
+- [x] Basic Inventory
 
 ## Phase 3: Ship Systems & Chaos (Completed)
 - [x] Reactor, Doors, Power Manager (Basic scripts exist, need full logic)
@@ -24,3 +24,8 @@
 - [x] Main Menu and Lobby UI
 - [ ] Audio and Visual Effects
 - [ ] Playtesting and Bug Fixing
+
+## Phase 6: World Building & Assets (Pending)
+- [ ] Create main game map
+- [ ] Add 3D models and textures
+- [ ] Polish environment and lighting
