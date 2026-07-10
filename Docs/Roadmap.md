@@ -25,7 +25,7 @@
 ## Phase 5: Polish & Game Loop (In Progress)
 - [x] Mission UI, Win/Lose conditions
 - [x] Main Menu and Lobby UI
-- [ ] Basic Texturing (Reactor, Generator, Doors, Floor, Skybox)
+- [x] Basic Texturing (Reactor, Generator, Doors, Floor, Skybox)
 - [ ] Audio and Visual Effects
 - [x] Playtesting and Bug Fixing (UI Layouts, Player Physics, Interaction Exceptions)
 

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added — Environment Polish
+- **Basic Texturing**: Added distinct solid color materials for core interactive objects (Reactor: Orange, Generator: Blue, Doors: Dark Grey) and basic dark coloring for the floor and skybox to improve visual clarity and placeholder aesthetics.
+
 ### Fixed — Mechanics & UI Bugfixes
 - **PlayerController**: Fixed crouch bounding box anchoring that caused the player to fall through the map. Added automatic fallback for missing `GroundCheck` transform to resolve jumping issues.
 - **Mission UI**: Fixed HUD UI scaling by switching `MissionCanvas` to `Scale With Screen Size` and properly anchoring UI elements (`DescText`, `HullBar`, `TaskPanel`) to screen corners.

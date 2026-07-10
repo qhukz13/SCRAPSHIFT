@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 62af0a2a87926ee44a657fbc4b459461, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -154,12 +154,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   _config: {fileID: 0}
-  NetworkRepairProgress:
+  _statusRenderer: {fileID: 0}
+  _offlineColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  _startingColor: {r: 1, g: 0.9, b: 0.3, a: 1}
+  _runningColor: {r: 0, g: 1, b: 0.4, a: 1}
+  _overheatColor: {r: 1, g: 0.5, b: 0, a: 1}
+  _criticalColor: {r: 1, g: 0, b: 0, a: 1}
+  _meltdownColor: {r: 0.6, g: 0, b: 0, a: 1}
+  State:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
   HeatLevel:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  NetworkRepairProgress:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -234,7 +246,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 719d7db573fbb0140a6320d8512f876a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -671,7 +683,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 390537bb29b27e64f9e3b4666e3d0700, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1031,12 +1043,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   _config: {fileID: 0}
+  _doorId: Door
   _doorAnimator: {fileID: 0}
-  IsJammed:
+  _panelRenderer: {fileID: 0}
+  _openColor: {r: 0, g: 1, b: 0.4, a: 1}
+  _closedColor: {r: 0.2, g: 0.5, b: 1, a: 1}
+  _lockedColor: {r: 1, g: 0.5, b: 0, a: 1}
+  _brokenColor: {r: 1, g: 0, b: 0, a: 1}
+  _noPowerColor: {r: 0.15, g: 0.15, b: 0.15, a: 1}
+  State:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
+    m_InternalValue: 1
   NetworkRepairProgress:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -1112,7 +1131,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 3aad3426f9e02ac479c1468b1ca465d8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1253,12 +1272,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  _config: {fileID: 11400000, guid: ed6567253884bc7478f29e0b9933d492, type: 2}
   CurrentPower:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  _config: {fileID: 11400000, guid: ed6567253884bc7478f29e0b9933d492, type: 2}
+  MaxPower:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  TotalDemand:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!4 &1859144046
 Transform:
   m_ObjectHideFlags: 0
