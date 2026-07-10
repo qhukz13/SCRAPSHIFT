@@ -1,3 +1,9 @@
+// ============================================================================
+// Space Maintenance — PlayerCameraController.cs
+// First-person camera: horizontal rotation on body, vertical on camera.
+// Supports dynamic camera height for crouch transitions.
+// ============================================================================
+
 using UnityEngine;
 
 namespace SpaceMaintenance.Player
@@ -9,6 +15,9 @@ namespace SpaceMaintenance.Player
         
         private float _xRotation = 0f;
         private PlayerInputHandler _inputHandler;
+
+        /// <summary>Current local Y of the camera (used by crouch lerp).</summary>
+        public float CameraLocalY => _cameraTransform != null ? _cameraTransform.localPosition.y : 0f;
 
         public void Initialize(PlayerInputHandler input, PlayerMovementConfig config)
         {
@@ -39,6 +48,15 @@ namespace SpaceMaintenance.Player
             }
             
             transform.Rotate(Vector3.up * mouseX);
+        }
+
+        /// <summary>Set the camera's local Y position (for smooth crouch transitions).</summary>
+        public void SetTargetLocalY(float y)
+        {
+            if (_cameraTransform == null) return;
+            var pos = _cameraTransform.localPosition;
+            pos.y = y;
+            _cameraTransform.localPosition = pos;
         }
     }
 }

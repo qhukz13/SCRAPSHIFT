@@ -9,6 +9,7 @@
 - [x] Networked Player Controller
 - [x] Physics Grab System
 - [x] Basic Inventory
+- [x] **Player Movement** — Sprint (LeftShift, stamina system), Crouch (C toggle / LeftCtrl hold, capsule resize, ceiling check), Jump (with separate Falling state), air control
 
 ## Phase 3: Ship Systems & Chaos (Completed)
 - [x] Reactor — full state machine (Offline/Starting/Running/Overheating/Critical/Meltdown), SCRAM, cooling

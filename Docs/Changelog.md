@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed — Player Movement Overhaul
+- **PlayerController**: Full rewrite — added sprint (LeftShift, stamina drain/regen/cooldown), crouch (C toggle / LeftCtrl hold, capsule resize, ceiling check, smooth camera lerp), separate Falling state, air control multiplier.
+- **PlayerStates**: Expanded from 4 states to 7 — added `SprintState`, `CrouchState`, `FallingState`. All states check transitions in priority order.
+- **PlayerInputHandler**: Added `SprintInput`, `CrouchInput`, `CrouchToggle`, `CancelCrouch()`.
+- **PlayerMovementConfig**: Extended with sprint speed, stamina settings, crouch height/speed/transition, air control multiplier.
+- **PlayerCameraController**: Added `CameraLocalY` property and `SetTargetLocalY()` for smooth crouch camera transitions.
+- **GameEnums**: Added `Sprinting` and `Crouching` to `PlayerStateType`.
+
 ### Changed — Ship Systems Overhaul
 - **ReactorController**: Full rewrite with 6-state machine (Offline/Starting/Running/Overheating/Critical/Meltdown). Added SCRAM emergency shutdown (IInteractable), accelerating heat in higher states, configurable thresholds, and visual feedback via emissive renderer.
 - **DoorController**: Full rewrite with 4-state machine (Open/Closed/Locked/Broken). Now implements IPowered (manual mode without power, emergency auto-open on power loss), lock bypass via hold-interact, and visual panel feedback.
