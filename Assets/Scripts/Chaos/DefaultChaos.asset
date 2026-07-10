@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 056887ed1ab9edf41822ee8454e3d9a9, type: 3}
+  m_Name: DefaultChaos
+  m_EditorClassIdentifier: 
+  TimeBetweenEvents: 30
+  MinimumTimeBetweenEvents: 10
+  DamagePerUnresolvedEvent: 2
+  DamageInterval: 5

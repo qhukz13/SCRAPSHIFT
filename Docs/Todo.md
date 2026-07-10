@@ -9,6 +9,12 @@
 - Define `ItemData` ScriptableObjects.
 - Set up basic `ReactorController.cs` for ship systems.
 
+## Ship Systems (Completed)
+- [x] ReactorController.cs + Config
+- [x] GeneratorController.cs + Config
+- [x] DoorController.cs + Config
+- [x] PowerManager.cs + Config
+
 ## Low Priority
 - Implement `MissionResultUI.cs`.
 - Add sound effects for interacting and repairing.

@@ -87,6 +87,12 @@ namespace SpaceMaintenance.Core
         Key             // Access card, key
     }
 
+    public enum GameMode
+    {
+        Survival,
+        Tasks
+    }
+
     /// <summary>Player state for the state machine.</summary>
     public enum PlayerStateType
     {

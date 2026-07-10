@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- Core architecture (ServiceLocator, EventBus, StateMachine, ObjectPool).
+- Core Game Loop: DamageManager, ChaosManager, RoundManager, MissionManager, WinLoseEvaluator, MissionResultUI.
+- Repair System: RepairController, RepairProgressUI, IRepairable implementations.
+- Ship Systems: ReactorController, GeneratorController, DoorController, PowerManager.
+- Multiplayer Networking: NetworkGameManager, PlayerSpawner, LobbyManager.
+- Player Mechanics: Networked PlayerController, PhysicsGrabController, InteractionController.
+- Core architecture (ServiceLocator, EventBus, StateMachine).
 - Base interfaces (IDamageable, IInteractable, IPowered, IRepairable, IGrabbable).
-- GameBootstrap and GameEnums setup.
-- Initial project documentation (Architecture, ProjectOverview, Systems, Roadmap, CurrentState, KnownIssues, Todo, Changelog).
+- GameEnums, GameEvents, and GameBootstrap.
+- Initial project documentation.

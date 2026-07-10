@@ -15,7 +15,7 @@ namespace SpaceMaintenance.Core
             {
                 if (_instance == null)
                 {
-                    _instance = FindObjectOfType<ServiceLocator>();
+                    _instance = FindFirstObjectByType<ServiceLocator>();
                     if (_instance == null)
                     {
                         var go = new GameObject("ServiceLocator");
