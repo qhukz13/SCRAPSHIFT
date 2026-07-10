@@ -6,7 +6,7 @@
 - Set up Unity Netcode for GameObjects and ensure `NetworkGameManager` functions properly.
 
 ## Medium Priority
-- Define `ItemData` ScriptableObjects.
+- [x] Define `ItemData` ScriptableObjects.
 - Set up basic `ReactorController.cs` for ship systems.
 
 ## Ship Systems (Completed)
