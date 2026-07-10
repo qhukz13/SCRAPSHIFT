@@ -16,5 +16,6 @@
 - [x] PowerManager.cs + Config
 
 ## Low Priority
-- Implement `MissionResultUI.cs`.
+- [x] Implement `MissionResultUI.cs` (integrated with GameOverEvent, shows stats).
+- [x] Implement `MissionHUD.cs` (timer, hull bar, task counter, warnings).
 - Add sound effects for interacting and repairing.

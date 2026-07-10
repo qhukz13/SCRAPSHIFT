@@ -1,4 +1,5 @@
 using SpaceMaintenance.Core;
+using SpaceMaintenance.Core.Data;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -33,6 +34,12 @@ namespace SpaceMaintenance.Missions
             TimeRemaining.Value = _config.SurvivalDuration;
             IsGameRunning.Value = true;
             Debug.Log($"Round Started! Mode: {_config.Mode}");
+
+            EventBus.Publish(new MissionTimerUpdatedEvent
+            {
+                TimeRemaining = TimeRemaining.Value,
+                TotalTime = _config.SurvivalDuration
+            });
         }
 
         private void Update()
@@ -44,8 +51,14 @@ namespace SpaceMaintenance.Missions
             if (TimeRemaining.Value <= 0)
             {
                 TimeRemaining.Value = 0;
-                // Handled by WinLoseEvaluator
             }
+
+            // Publish timer update for HUD every frame
+            EventBus.Publish(new MissionTimerUpdatedEvent
+            {
+                TimeRemaining = TimeRemaining.Value,
+                TotalTime = _config != null ? _config.SurvivalDuration : 0f
+            });
         }
 
         public void EndRound()

@@ -1,4 +1,5 @@
 using SpaceMaintenance.Core;
+using SpaceMaintenance.Core.Data;
 using SpaceMaintenance.Damage;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,49 +8,58 @@ namespace SpaceMaintenance.Missions
 {
     public class WinLoseEvaluator : NetworkBehaviour
     {
+        private bool _gameOverTriggered = false;
+
         private void Update()
         {
-            if (!IsServer || RoundManager.Instance == null || !RoundManager.Instance.IsGameRunning.Value) return;
+            if (!IsServer || _gameOverTriggered) return;
+            if (RoundManager.Instance == null || !RoundManager.Instance.IsGameRunning.Value) return;
 
             // Check Lose Condition (Hull Integrity)
             if (DamageManager.Instance != null && DamageManager.Instance.HullIntegrity.Value <= 0)
             {
-                TriggerGameOver(false);
+                TriggerGameOver(false, "Hull integrity reached 0. The ship has been destroyed.");
                 return;
             }
 
             var config = RoundManager.Instance.GetConfig();
             if (config == null) return;
 
-            // Check Win Condition based on Game Mode
-            if (config.Mode == SpaceMaintenance.Core.GameMode.Survival)
+            // Check Win/Lose Conditions based on Game Mode
+            if (config.Mode == GameMode.Survival)
             {
                 if (RoundManager.Instance.TimeRemaining.Value <= 0)
                 {
-                    TriggerGameOver(true);
+                    TriggerGameOver(true, "You survived the entire mission duration!");
                 }
             }
-            else if (config.Mode == SpaceMaintenance.Core.GameMode.Tasks)
+            else if (config.Mode == GameMode.Tasks)
             {
                 if (MissionManager.Instance != null && MissionManager.Instance.TasksCompleted.Value >= config.TasksRequired)
                 {
-                    TriggerGameOver(true);
+                    TriggerGameOver(true, $"All {config.TasksRequired} tasks completed!");
                 }
                 else if (RoundManager.Instance.TimeRemaining.Value <= 0)
                 {
-                    // In Task mode, running out of time is a lose
-                    TriggerGameOver(false);
+                    int completed = MissionManager.Instance != null ? MissionManager.Instance.TasksCompleted.Value : 0;
+                    TriggerGameOver(false, $"Time ran out. Tasks completed: {completed}/{config.TasksRequired}.");
                 }
             }
         }
 
-        private void TriggerGameOver(bool won)
+        private void TriggerGameOver(bool won, string reason)
         {
+            _gameOverTriggered = true;
             RoundManager.Instance.EndRound();
-            string result = won ? "VICTORY!" : "DEFEAT! Ship Destroyed.";
-            Debug.Log($"<color={(won ? "green" : "red")}>{result}</color>");
-            
-            // Here we would typically spawn a WinLose UI prefab or trigger a ClientRpc
+
+            Debug.Log($"<color={(won ? "green" : "red")}>{(won ? "VICTORY!" : "DEFEAT!")} {reason}</color>");
+
+            EventBus.Publish(new GameOverEvent
+            {
+                IsVictory = won,
+                Reason = reason
+            });
         }
     }
 }
+
