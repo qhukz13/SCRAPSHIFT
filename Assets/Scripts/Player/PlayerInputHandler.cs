@@ -1,8 +1,10 @@
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SpaceMaintenance.Player
 {
-    public class PlayerInputHandler : MonoBehaviour
+    public class PlayerInputHandler : NetworkBehaviour
     {
         // ─── Movement ───────────────────────────────────────────────────
         public Vector2 MoveInput   { get; private set; }
@@ -13,39 +15,102 @@ namespace SpaceMaintenance.Player
         public bool InteractInput  { get; private set; }
         public bool SprintInput    { get; private set; }
         public bool CrouchInput    { get; private set; }
-        public bool CrouchToggle   { get; private set; } // true on the frame crouch was toggled
+        public bool CrouchToggle   { get; private set; }
 
-        private bool _isCrouching;
+        private bool _isCrouchedState;
+
+        // ─── Input Actions ──────────────────────────────────────────────
+        private InputAction _moveAction;
+        private InputAction _lookAction;
+        private InputAction _jumpAction;
+        private InputAction _interactAction;
+        private InputAction _sprintAction;
+        private InputAction _crouchAction;
+        private InputAction _crouchToggleAction;
+
+        private void Awake()
+        {
+            _moveAction = new InputAction("Move", binding: "<Gamepad>/leftStick");
+            _moveAction.AddCompositeBinding("Dpad")
+                .With("Up", "<Keyboard>/w")
+                .With("Down", "<Keyboard>/s")
+                .With("Left", "<Keyboard>/a")
+                .With("Right", "<Keyboard>/d");
+
+            _lookAction = new InputAction("Look", binding: "<Pointer>/delta");
+            
+            _jumpAction = new InputAction("Jump", binding: "<Keyboard>/space");
+            _jumpAction.AddBinding("<Gamepad>/buttonSouth");
+
+            _interactAction = new InputAction("Interact", binding: "<Keyboard>/e");
+            _interactAction.AddBinding("<Gamepad>/buttonWest");
+
+            _sprintAction = new InputAction("Sprint", binding: "<Keyboard>/leftShift");
+            
+            // Left control to hold crouch
+            _crouchAction = new InputAction("Crouch", binding: "<Keyboard>/leftCtrl");
+            
+            // C to toggle crouch
+            _crouchToggleAction = new InputAction("CrouchToggle", binding: "<Keyboard>/c");
+
+            _jumpAction.performed += ctx => JumpInput = true;
+            _interactAction.performed += ctx => InteractInput = true;
+            
+            _crouchToggleAction.performed += ctx => 
+            {
+                _isCrouchedState = !_isCrouchedState;
+                CrouchToggle = true;
+            };
+        }
+
+        public override void OnNetworkSpawn()
+        {
+            if (IsOwner)
+            {
+                _moveAction.Enable();
+                _lookAction.Enable();
+                _jumpAction.Enable();
+                _interactAction.Enable();
+                _sprintAction.Enable();
+                _crouchAction.Enable();
+                _crouchToggleAction.Enable();
+            }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner)
+            {
+                _moveAction.Disable();
+                _lookAction.Disable();
+                _jumpAction.Disable();
+                _interactAction.Disable();
+                _sprintAction.Disable();
+                _crouchAction.Disable();
+                _crouchToggleAction.Disable();
+            }
+        }
 
         private void Update()
         {
-            // Movement axes
-            MoveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-            LookInput = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
+            if (!IsOwner) return;
 
-            // Jump — single press
-            JumpInput = Input.GetButtonDown("Jump");
-
-            // Interact — single press
-            InteractInput = Input.GetKeyDown(KeyCode.E);
-
-            // Sprint — held
-            SprintInput = Input.GetKey(KeyCode.LeftShift);
-
-            // Crouch — toggle on C press (also support LeftControl hold)
             CrouchToggle = false;
-            if (Input.GetKeyDown(KeyCode.C))
-            {
-                _isCrouching = !_isCrouching;
-                CrouchToggle = true;
-            }
-            CrouchInput = _isCrouching || Input.GetKey(KeyCode.LeftControl);
 
+            MoveInput = _moveAction.ReadValue<Vector2>();
+            LookInput = _lookAction.ReadValue<Vector2>();
+            
+            SprintInput = _sprintAction.ReadValue<float>() > 0.5f;
+            
+            bool holdingCrouch = _crouchAction.ReadValue<float>() > 0.5f;
+            
             // If holding LeftControl, override toggle
-            if (Input.GetKeyUp(KeyCode.LeftControl) && !_isCrouching)
+            if (_crouchAction.WasReleasedThisFrame() && !_isCrouchedState)
             {
                 CrouchInput = false;
             }
+
+            CrouchInput = _isCrouchedState || holdingCrouch;
         }
 
         // ─── Consume helpers ────────────────────────────────────────────
@@ -55,7 +120,7 @@ namespace SpaceMaintenance.Player
         /// <summary>Force-cancel crouch (e.g. when starting a sprint).</summary>
         public void CancelCrouch()
         {
-            _isCrouching = false;
+            _isCrouchedState = false;
             CrouchInput = false;
         }
     }
