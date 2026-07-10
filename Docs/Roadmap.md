@@ -26,7 +26,7 @@
 - [x] Mission UI, Win/Lose conditions
 - [x] Main Menu and Lobby UI
 - [ ] Audio and Visual Effects
-- [ ] Playtesting and Bug Fixing
+- [x] Playtesting and Bug Fixing (UI Layouts, Player Physics, Interaction Exceptions)
 
 ## Phase 6: World Building & Assets (Pending)
 - [ ] Create main game map

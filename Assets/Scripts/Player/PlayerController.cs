@@ -167,7 +167,10 @@ namespace SpaceMaintenance.Player
             if (_capsule != null)
             {
                 _capsule.height = Config.CrouchHeight;
-                _capsule.center = new Vector3(0f, Config.CrouchHeight / 2f, 0f);
+                // Keep the bottom of the collider at the same level.
+                // Assuming original center is 0 and height is StandHeight.
+                float heightDiff = Config.StandHeight - Config.CrouchHeight;
+                _capsule.center = new Vector3(0f, -heightDiff / 2f, 0f);
             }
 
             _targetCameraY = _crouchCameraY;
@@ -185,7 +188,7 @@ namespace SpaceMaintenance.Player
             if (_capsule != null)
             {
                 _capsule.height = Config.StandHeight;
-                _capsule.center = new Vector3(0f, Config.StandHeight / 2f, 0f);
+                _capsule.center = Vector3.zero;
             }
 
             _targetCameraY = _standCameraY;
@@ -252,8 +255,30 @@ namespace SpaceMaintenance.Player
 
         private void CheckGrounded()
         {
-            if (_groundCheck == null) return;
-            IsGrounded = Physics.CheckSphere(_groundCheck.position, 0.2f, _groundLayer);
+            if (_groundCheck == null)
+            {
+                GameObject gc = new GameObject("GroundCheck");
+                gc.transform.SetParent(transform);
+                float bottomY = _capsule != null ? (_capsule.center.y - (_capsule.height / 2f)) : -1f;
+                gc.transform.localPosition = new Vector3(0, bottomY, 0);
+                _groundCheck = gc.transform;
+            }
+
+            if (_groundLayer.value == 0)
+            {
+                _groundLayer = LayerMask.GetMask("Default");
+            }
+
+            IsGrounded = false;
+            Collider[] hits = Physics.OverlapSphere(_groundCheck.position, 0.2f, _groundLayer);
+            foreach (var hit in hits)
+            {
+                if (hit.gameObject != gameObject && !hit.isTrigger)
+                {
+                    IsGrounded = true;
+                    break;
+                }
+            }
         }
 
         private void UpdateCrouchVisuals()

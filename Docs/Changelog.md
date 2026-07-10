@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed — Mechanics & UI Bugfixes
+- **PlayerController**: Fixed crouch bounding box anchoring that caused the player to fall through the map. Added automatic fallback for missing `GroundCheck` transform to resolve jumping issues.
+- **Mission UI**: Fixed HUD UI scaling by switching `MissionCanvas` to `Scale With Screen Size` and properly anchoring UI elements (`DescText`, `HullBar`, `TaskPanel`) to screen corners.
+- **Mission Result UI**: Fixed result texts (VICTORY, etc.) overlapping by manually positioning and resizing RectTransforms instead of using `VerticalLayoutGroup`.
+- **ReactorController**: Fixed `NullReferenceException` on interact by automatically loading `DefaultPowerConfig` from `Resources` if the Inspector reference is missing.
+
 ### Changed — Player Movement Overhaul
 - **PlayerController**: Full rewrite — added sprint (LeftShift, stamina drain/regen/cooldown), crouch (C toggle / LeftCtrl hold, capsule resize, ceiling check, smooth camera lerp), separate Falling state, air control multiplier.
 - **PlayerStates**: Expanded from 4 states to 7 — added `SprintState`, `CrouchState`, `FallingState`. All states check transitions in priority order.

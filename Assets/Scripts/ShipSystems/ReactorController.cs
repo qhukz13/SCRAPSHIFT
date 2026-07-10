@@ -78,6 +78,18 @@ namespace SpaceMaintenance.ShipSystems
         //  LIFECYCLE
         // =================================================================
 
+        private void Awake()
+        {
+            if (_config == null)
+            {
+                _config = Resources.Load<PowerConfig>("DefaultPowerConfig");
+                if (_config == null)
+                {
+                    Debug.LogError("[ReactorController] DefaultPowerConfig not found in Resources!");
+                }
+            }
+        }
+
         public override void OnNetworkSpawn()
         {
             // Register visual callback on all clients
