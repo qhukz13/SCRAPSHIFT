@@ -8,10 +8,12 @@ using UnityEngine;
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Player.States;
 
+using Unity.Netcode;
+
 namespace SpaceMaintenance.Player
 {
     [RequireComponent(typeof(Rigidbody), typeof(PlayerInputHandler), typeof(PlayerCameraController))]
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : NetworkBehaviour
     {
         // ─── Inspector ──────────────────────────────────────────────────
         [field: SerializeField] public PlayerMovementConfig Config { get; private set; }
@@ -76,9 +78,12 @@ namespace SpaceMaintenance.Player
             CarryingState = new PlayerCarryingState(this);
         }
 
-        private void Start()
+        public override void OnNetworkSpawn()
         {
-            CameraController.Initialize(Input, Config);
+            if (IsOwner)
+            {
+                CameraController.Initialize(Input, Config);
+            }
             CurrentStamina = Config.MaxStamina;
 
             // Cache camera heights
@@ -91,6 +96,8 @@ namespace SpaceMaintenance.Player
 
         private void Update()
         {
+            if (!IsOwner) return;
+
             CheckGrounded();
             _stateMachine.Update();
             CameraController.HandleCameraRotation();

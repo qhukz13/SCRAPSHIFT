@@ -29,7 +29,7 @@ namespace SpaceMaintenance.Player
         {
             if (!IsOwner) return;
 
-            if (Input.GetKey(KeyCode.R)) // Hold R to repair
+            if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.rKey.isPressed) // Hold R to repair
             {
                 if (CurrentRepairTarget == null)
                 {

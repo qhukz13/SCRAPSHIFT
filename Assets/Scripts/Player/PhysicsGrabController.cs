@@ -1,10 +1,12 @@
+using Unity.Netcode;
 using SpaceMaintenance.Core;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SpaceMaintenance.Player
 {
     [RequireComponent(typeof(PlayerInputHandler))]
-    public class PhysicsGrabController : MonoBehaviour
+    public class PhysicsGrabController : NetworkBehaviour
     {
         [Header("Settings")]
         [SerializeField] private float _grabRange = 3f;
@@ -26,20 +28,26 @@ namespace SpaceMaintenance.Player
 
         private void Update()
         {
-            // Fallback for prototyping without re-writing InputHandler immediately
-            if (Input.GetMouseButtonDown(1)) // Right click to grab
+            if (!IsOwner) return;
+
+            if (Mouse.current != null)
             {
-                if (_grabbedObject == null) TryGrab();
-                else Release();
-            }
-            else if (Input.GetMouseButtonDown(0)) // Left click to throw
-            {
-                if (_grabbedObject != null) Throw();
+                if (Mouse.current.rightButton.wasPressedThisFrame) // Right click to grab
+                {
+                    if (_grabbedObject == null) TryGrab();
+                    else Release();
+                }
+                else if (Mouse.current.leftButton.wasPressedThisFrame) // Left click to throw
+                {
+                    if (_grabbedObject != null) Throw();
+                }
             }
         }
 
         private void FixedUpdate()
         {
+            if (!IsOwner) return;
+
             if (_grabbedObject != null && _grabbedObject.Rigidbody != null)
             {
                 MoveGrabbedObject();
