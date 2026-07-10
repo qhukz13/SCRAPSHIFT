@@ -1,38 +1,106 @@
+// ============================================================================
+// Space Maintenance — PlayerStates.cs
+// All player states for the state machine:
+// Idle, Moving, Sprinting, Crouching, Jumping, Falling, Carrying.
+// ============================================================================
+
 using SpaceMaintenance.Core;
 using UnityEngine;
 
 namespace SpaceMaintenance.Player.States
 {
+    // =====================================================================
+    //  BASE
+    // =====================================================================
+
     public abstract class PlayerState : IState
     {
         protected readonly PlayerController Player;
-        
+
         protected PlayerState(PlayerController player)
         {
             Player = player;
         }
-        
-        public virtual void Enter() {}
-        public virtual void Execute() {}
-        public virtual void Exit() {}
+
+        public virtual void Enter() { }
+        public virtual void Execute() { }
+        public virtual void Exit() { }
+
+        // ─── Common transition checks ───────────────────────────────────
+
+        /// <summary>Check if the player should start jumping.</summary>
+        protected bool TryJump()
+        {
+            if (Player.Input.JumpInput && Player.IsGrounded)
+            {
+                // Uncrouch before jumping
+                if (Player.IsCrouching)
+                    Player.ExitCrouch();
+
+                Player.ChangeState(Player.JumpingState);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>Returns true if there is movement input.</summary>
+        protected bool HasMoveInput()
+        {
+            return Player.Input.MoveInput.sqrMagnitude > 0.01f;
+        }
     }
+
+    // =====================================================================
+    //  IDLE — standing still
+    // =====================================================================
 
     public class PlayerIdleState : PlayerState
     {
         public PlayerIdleState(PlayerController player) : base(player) { }
 
+        public override void Enter()
+        {
+            // Zero out horizontal velocity when entering idle
+            var vel = Player.Rb.linearVelocity;
+            Player.Rb.linearVelocity = new Vector3(0f, vel.y, 0f);
+        }
+
         public override void Execute()
         {
-            if (Player.Input.MoveInput.sqrMagnitude > 0.1f)
+            // ── Transitions (priority order) ────────────────────────────
+            if (TryJump()) return;
+
+            if (!Player.IsGrounded && Player.Rb.linearVelocity.y < -0.5f)
             {
-                Player.ChangeState(Player.MovingState);
+                Player.ChangeState(Player.FallingState);
+                return;
             }
-            else if (Player.Input.JumpInput && Player.IsGrounded)
+
+            if (Player.Input.CrouchInput)
             {
-                Player.ChangeState(Player.JumpingState);
+                Player.ChangeState(Player.CrouchState);
+                return;
+            }
+
+            if (HasMoveInput())
+            {
+                // Sprint?
+                if (Player.Input.SprintInput && Player.CanSprint())
+                {
+                    Player.ChangeState(Player.SprintState);
+                }
+                else
+                {
+                    Player.ChangeState(Player.MovingState);
+                }
+                return;
             }
         }
     }
+
+    // =====================================================================
+    //  MOVING — normal walk
+    // =====================================================================
 
     public class PlayerMovingState : PlayerState
     {
@@ -40,18 +108,157 @@ namespace SpaceMaintenance.Player.States
 
         public override void Execute()
         {
-            if (Player.Input.MoveInput.sqrMagnitude <= 0.1f)
+            // ── Transitions ─────────────────────────────────────────────
+            if (TryJump()) return;
+
+            if (!Player.IsGrounded && Player.Rb.linearVelocity.y < -0.5f)
+            {
+                Player.ChangeState(Player.FallingState);
+                return;
+            }
+
+            if (!HasMoveInput())
             {
                 Player.ChangeState(Player.IdleState);
+                return;
             }
-            else if (Player.Input.JumpInput && Player.IsGrounded)
+
+            if (Player.Input.CrouchInput)
             {
-                Player.ChangeState(Player.JumpingState);
+                Player.ChangeState(Player.CrouchState);
+                return;
             }
-            
+
+            if (Player.Input.SprintInput && Player.CanSprint())
+            {
+                Player.ChangeState(Player.SprintState);
+                return;
+            }
+
+            // ── Move ────────────────────────────────────────────────────
             Player.Move(Player.Input.MoveInput, 1f);
         }
     }
+
+    // =====================================================================
+    //  SPRINT — fast movement, drains stamina
+    // =====================================================================
+
+    public class PlayerSprintState : PlayerState
+    {
+        public PlayerSprintState(PlayerController player) : base(player) { }
+
+        public override void Enter()
+        {
+            Player.StartSprint();
+        }
+
+        public override void Execute()
+        {
+            // ── Transitions ─────────────────────────────────────────────
+            if (TryJump()) return;
+
+            if (!Player.IsGrounded && Player.Rb.linearVelocity.y < -0.5f)
+            {
+                Player.StopSprint();
+                Player.ChangeState(Player.FallingState);
+                return;
+            }
+
+            // Stop sprinting conditions
+            if (!Player.Input.SprintInput || !Player.CanSprint() || !HasMoveInput())
+            {
+                Player.StopSprint();
+
+                if (!HasMoveInput())
+                    Player.ChangeState(Player.IdleState);
+                else
+                    Player.ChangeState(Player.MovingState);
+                return;
+            }
+
+            if (Player.Input.CrouchInput)
+            {
+                Player.StopSprint();
+                Player.ChangeState(Player.CrouchState);
+                return;
+            }
+
+            // ── Move at sprint speed ────────────────────────────────────
+            Player.MoveSprint(Player.Input.MoveInput);
+        }
+
+        public override void Exit()
+        {
+            Player.StopSprint();
+        }
+    }
+
+    // =====================================================================
+    //  CROUCH — slow movement, reduced height
+    // =====================================================================
+
+    public class PlayerCrouchState : PlayerState
+    {
+        public PlayerCrouchState(PlayerController player) : base(player) { }
+
+        public override void Enter()
+        {
+            Player.EnterCrouch();
+        }
+
+        public override void Execute()
+        {
+            // ── Transitions ─────────────────────────────────────────────
+
+            // Uncrouch if input released (and no ceiling above)
+            if (!Player.Input.CrouchInput && !Player.IsCeilingAbove())
+            {
+                Player.ExitCrouch();
+
+                if (HasMoveInput())
+                    Player.ChangeState(Player.MovingState);
+                else
+                    Player.ChangeState(Player.IdleState);
+                return;
+            }
+
+            // Jump while crouched — stand up + jump
+            if (Player.Input.JumpInput && Player.IsGrounded && !Player.IsCeilingAbove())
+            {
+                Player.ExitCrouch();
+                Player.ChangeState(Player.JumpingState);
+                return;
+            }
+
+            if (!Player.IsGrounded && Player.Rb.linearVelocity.y < -0.5f)
+            {
+                Player.ChangeState(Player.FallingState);
+                return;
+            }
+
+            // ── Move at crouch speed ────────────────────────────────────
+            if (HasMoveInput())
+            {
+                Player.MoveCrouch(Player.Input.MoveInput);
+            }
+            else
+            {
+                // Slow to stop
+                var vel = Player.Rb.linearVelocity;
+                Player.Rb.linearVelocity = new Vector3(0f, vel.y, 0f);
+            }
+        }
+
+        public override void Exit()
+        {
+            // ExitCrouch is called explicitly before state change
+        }
+    }
+
+    // =====================================================================
+    //  JUMPING — upward arc after pressing jump
+    // =====================================================================
 
     public class PlayerJumpingState : PlayerState
     {
@@ -65,19 +272,59 @@ namespace SpaceMaintenance.Player.States
 
         public override void Execute()
         {
-            // Simple logic for returning to movement/idle
-            if (Player.IsGrounded && Player.Rb.linearVelocity.y <= 0.1f)
+            // Transition to Falling once we start descending
+            if (Player.Rb.linearVelocity.y <= 0.1f)
             {
-                if (Player.Input.MoveInput.sqrMagnitude > 0.1f)
-                    Player.ChangeState(Player.MovingState);
-                else
-                    Player.ChangeState(Player.IdleState);
+                Player.ChangeState(Player.FallingState);
+                return;
             }
-            
-            // Allow air movement
-            Player.Move(Player.Input.MoveInput, 0.8f);
+
+            // Air control
+            if (HasMoveInput())
+            {
+                Player.Move(Player.Input.MoveInput, Player.Config.AirControlMultiplier);
+            }
         }
     }
+
+    // =====================================================================
+    //  FALLING — descending (from jump peak or walking off edge)
+    // =====================================================================
+
+    public class PlayerFallingState : PlayerState
+    {
+        public PlayerFallingState(PlayerController player) : base(player) { }
+
+        public override void Execute()
+        {
+            // Land
+            if (Player.IsGrounded)
+            {
+                if (HasMoveInput())
+                {
+                    if (Player.Input.SprintInput && Player.CanSprint())
+                        Player.ChangeState(Player.SprintState);
+                    else
+                        Player.ChangeState(Player.MovingState);
+                }
+                else
+                {
+                    Player.ChangeState(Player.IdleState);
+                }
+                return;
+            }
+
+            // Air control
+            if (HasMoveInput())
+            {
+                Player.Move(Player.Input.MoveInput, Player.Config.AirControlMultiplier);
+            }
+        }
+    }
+
+    // =====================================================================
+    //  CARRYING — holding a physics object (reduced speed)
+    // =====================================================================
 
     public class PlayerCarryingState : PlayerState
     {
@@ -85,9 +332,16 @@ namespace SpaceMaintenance.Player.States
 
         public override void Execute()
         {
+            // Cannot sprint or crouch while carrying
             Player.Move(Player.Input.MoveInput, Player.Config.CarrySpeedMultiplier);
-            
-            // Interaction drop logic to be added later
+
+            if (Player.Input.JumpInput && Player.IsGrounded)
+            {
+                Player.Jump();
+                Player.Input.ConsumeJumpInput();
+            }
+
+            // Drop logic handled by PhysicsGrabController
         }
     }
 }

@@ -98,6 +98,8 @@ namespace SpaceMaintenance.Core
     {
         Idle,
         Moving,
+        Sprinting,
+        Crouching,
         Jumping,
         Falling,
         Carrying,

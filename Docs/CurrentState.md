@@ -2,6 +2,7 @@
 
 ## Implemented (Full Systems)
 - Core architecture (ServiceLocator, EventBus, StateMachine).
+- **Player Movement** — 7-state machine (Idle/Moving/Sprinting/Crouching/Jumping/Falling/Carrying). Sprint with stamina system. Crouch with capsule resize, ceiling check, smooth camera lerp. Air control while jumping/falling.
 - Fully networked Player Controller with Physics Grab.
 - **Reactor Controller** — full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown), SCRAM emergency shutdown, IInteractable for manual control, IRepairable for cooling, visual feedback via emissive renderer.
 - **Door Controller** — full state machine (Open / Closed / Locked / Broken), IPowered integration (manual operation without power, emergency open on power loss), IRepairable for unjamming, lock bypass via hold-interact, visual panel feedback.
@@ -15,6 +16,6 @@
 - **Phase 5: Polish** — Audio/Visual effects not yet implemented. Systems need wiring up in Unity scenes.
 
 ## Next Up
-- Add Audio and Visual Effects (alarms, reactor hum, door sounds).
+- Add Audio and Visual Effects (alarms, reactor hum, door sounds, footsteps).
 - Create main game map and wire up all systems in scene.
 - Playtesting and Bug Fixing.
