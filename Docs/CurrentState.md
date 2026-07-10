@@ -1,14 +1,20 @@
 # Current State
 
-## Implemented (Base Scripts)
+## Implemented (Full Systems)
 - Core architecture (ServiceLocator, EventBus, StateMachine).
 - Fully networked Player Controller with Physics Grab.
-- Basic Ship Systems scripts (Reactor, Generator, Doors, Power Manager).
-- Basic Core Game Loop scripts (ChaosManager, DamageManager, MissionManager, WinLoseEvaluator).
+- **Reactor Controller** — full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown), SCRAM emergency shutdown, IInteractable for manual control, IRepairable for cooling, visual feedback via emissive renderer.
+- **Door Controller** — full state machine (Open / Closed / Locked / Broken), IPowered integration (manual operation without power, emergency open on power loss), IRepairable for unjamming, lock bypass via hold-interact, visual panel feedback.
+- **Power Manager** — IPowered consumer registration, priority-based power distribution, automatic shutdown of low-priority systems when power drops.
+- **Generator Controller** — break/repair cycle with power grid integration.
+- **Chaos Manager** — 5 event types: Generator Break, Door Jam, Door Lock, Reactor Surge, Power Drain. Active disasters apply continuous hull damage.
+- Core Game Loop scripts (DamageManager, MissionManager, WinLoseEvaluator, RoundManager).
+- Mission UI (MissionHUD, MissionResultUI), Main Menu and Lobby UI.
 
-## In Progress (Fleshing out features)
-- **Phase 3: Ship Systems & Chaos**: Currently only the generator breaks. Reactor and Doors need full mechanics. Repair UI needs to be wired up in Unity.
+## In Progress
+- **Phase 5: Polish** — Audio/Visual effects not yet implemented. Systems need wiring up in Unity scenes.
 
 ## Next Up
-- Complete Phase 3 mechanics (Reactor overheating, Power-dependent doors, diverse Chaos events).
-- Implement the actual Inventory system (Phase 2).
+- Add Audio and Visual Effects (alarms, reactor hum, door sounds).
+- Create main game map and wire up all systems in scene.
+- Playtesting and Bug Fixing.

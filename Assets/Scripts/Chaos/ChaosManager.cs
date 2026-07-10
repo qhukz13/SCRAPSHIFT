@@ -1,4 +1,12 @@
+// ============================================================================
+// Space Maintenance — ChaosManager.cs
+// Periodically injects random failure events: generator breaks, door jams,
+// door locks, reactor surges, and power drains.
+// Active disasters apply continuous hull damage.
+// ============================================================================
+
 using SpaceMaintenance.Core;
+using SpaceMaintenance.Core.Data;
 using Unity.Netcode;
 using UnityEngine;
 using SpaceMaintenance.Damage;
@@ -25,7 +33,7 @@ namespace SpaceMaintenance.Chaos
         {
             if (IsServer)
             {
-                EventBus.Subscribe<SpaceMaintenance.Core.Data.SystemRepairedEvent>(OnSystemRepaired);
+                EventBus.Subscribe<SystemRepairedEvent>(OnSystemRepaired);
             }
         }
 
@@ -33,7 +41,7 @@ namespace SpaceMaintenance.Chaos
         {
             if (IsServer)
             {
-                EventBus.Unsubscribe<SpaceMaintenance.Core.Data.SystemRepairedEvent>(OnSystemRepaired);
+                EventBus.Unsubscribe<SystemRepairedEvent>(OnSystemRepaired);
             }
         }
 
@@ -64,56 +72,143 @@ namespace SpaceMaintenance.Chaos
             }
         }
 
+        // =================================================================
+        //  EVENT SELECTION
+        // =================================================================
+
         private void TriggerRandomEvent()
         {
-            int eventType = Random.Range(0, 3);
+            // Weighted random — 5 event types
+            int eventType = Random.Range(0, 5);
             
-            if (eventType == 0) // Generator Break
+            switch (eventType)
             {
-                var gens = FindObjectsByType<SpaceMaintenance.ShipSystems.GeneratorController>(FindObjectsSortMode.None);
-                foreach (var gen in gens)
-                {
-                    if (!gen.NeedsRepair)
-                    {
-                        gen.Break();
-                        _activeDisasters++;
-                        Debug.Log("Chaos: Generator broken!");
-                        EventBus.Publish(new SpaceMaintenance.Core.Data.ChaosEventTriggered { EventName = "Generator Break" });
-                        return;
-                    }
-                }
+                case 0:
+                    TryGeneratorBreak();
+                    break;
+                case 1:
+                    TryDoorJam();
+                    break;
+                case 2:
+                    TryReactorSurge();
+                    break;
+                case 3:
+                    TryDoorLock();
+                    break;
+                case 4:
+                    TryPowerDrain();
+                    break;
             }
-            else if (eventType == 1) // Door Jam
+        }
+
+        // =================================================================
+        //  EVENT IMPLEMENTATIONS
+        // =================================================================
+
+        /// <summary>Break a random healthy generator.</summary>
+        private void TryGeneratorBreak()
+        {
+            var gens = FindObjectsByType<SpaceMaintenance.ShipSystems.GeneratorController>(FindObjectsSortMode.None);
+            foreach (var gen in gens)
             {
-                var doors = FindObjectsByType<SpaceMaintenance.ShipSystems.DoorController>(FindObjectsSortMode.None);
-                foreach (var door in doors)
+                if (!gen.NeedsRepair)
                 {
-                    if (!door.IsJammed.Value)
-                    {
-                        door.JamDoor();
-                        _activeDisasters++;
-                        Debug.Log("Chaos: Door jammed!");
-                        EventBus.Publish(new SpaceMaintenance.Core.Data.ChaosEventTriggered { EventName = "Door Jam" });
-                        return;
-                    }
-                }
-            }
-            else if (eventType == 2) // Reactor Surge
-            {
-                var reactors = FindObjectsByType<SpaceMaintenance.ShipSystems.ReactorController>(FindObjectsSortMode.None);
-                if (reactors.Length > 0)
-                {
-                    reactors[0].SurgeHeat();
-                    Debug.Log("Chaos: Reactor heat surge!");
-                    EventBus.Publish(new SpaceMaintenance.Core.Data.ChaosEventTriggered { EventName = "Reactor Surge" });
-                    return; // Surge doesn't add to _activeDisasters directly, reactor handles its own melt
+                    gen.Break();
+                    _activeDisasters++;
+                    Debug.Log("[Chaos] Generator broken!");
+                    EventBus.Publish(new ChaosEventTriggered { EventName = "Generator Break" });
+                    NotifyChaosEventClientRpc("Generator Break");
+                    return;
                 }
             }
         }
 
-        private void OnSystemRepaired(SpaceMaintenance.Core.Data.SystemRepairedEvent evt)
+        /// <summary>Jam a random unjammed door.</summary>
+        private void TryDoorJam()
         {
-            if (evt.SystemName == "Backup Generator" || evt.SystemName == "Door Unjammed")
+            var doors = FindObjectsByType<SpaceMaintenance.ShipSystems.DoorController>(FindObjectsSortMode.None);
+            // Shuffle pick — find a non-broken, non-locked door
+            foreach (var door in doors)
+            {
+                if (door.State.Value != SpaceMaintenance.Core.DoorState.Broken &&
+                    door.State.Value != SpaceMaintenance.Core.DoorState.Locked)
+                {
+                    door.JamDoor();
+                    _activeDisasters++;
+                    Debug.Log("[Chaos] Door jammed!");
+                    EventBus.Publish(new ChaosEventTriggered { EventName = "Door Jam" });
+                    NotifyChaosEventClientRpc("Door Jam");
+                    return;
+                }
+            }
+        }
+
+        /// <summary>Lock a random unlocked door.</summary>
+        private void TryDoorLock()
+        {
+            var doors = FindObjectsByType<SpaceMaintenance.ShipSystems.DoorController>(FindObjectsSortMode.None);
+            foreach (var door in doors)
+            {
+                if (door.State.Value == SpaceMaintenance.Core.DoorState.Closed ||
+                    door.State.Value == SpaceMaintenance.Core.DoorState.Open)
+                {
+                    door.LockDoor();
+                    _activeDisasters++;
+                    Debug.Log("[Chaos] Door locked!");
+                    EventBus.Publish(new ChaosEventTriggered { EventName = "Door Lock" });
+                    NotifyChaosEventClientRpc("Door Lock");
+                    return;
+                }
+            }
+        }
+
+        /// <summary>Spike reactor heat.</summary>
+        private void TryReactorSurge()
+        {
+            var reactors = FindObjectsByType<SpaceMaintenance.ShipSystems.ReactorController>(FindObjectsSortMode.None);
+            if (reactors.Length > 0)
+            {
+                reactors[0].SurgeHeat();
+                Debug.Log("[Chaos] Reactor heat surge!");
+                EventBus.Publish(new ChaosEventTriggered { EventName = "Reactor Surge" });
+                NotifyChaosEventClientRpc("Reactor Surge");
+                // Surge doesn't directly add to _activeDisasters — reactor handles its own state
+            }
+        }
+
+        /// <summary>Drain a chunk of power from the grid.</summary>
+        private void TryPowerDrain()
+        {
+            if (SpaceMaintenance.ShipSystems.PowerManager.Instance == null) return;
+
+            float drainAmount = Random.Range(50f, 200f);
+            SpaceMaintenance.ShipSystems.PowerManager.Instance.DrainPower(drainAmount);
+            Debug.Log($"[Chaos] Power drain! Lost {drainAmount} units.");
+            EventBus.Publish(new ChaosEventTriggered { EventName = "Power Drain" });
+            NotifyChaosEventClientRpc($"Power Drain ({drainAmount:F0})");
+            // Power drain is instant, not a persistent disaster
+        }
+
+        // =================================================================
+        //  CLIENT NOTIFICATION
+        // =================================================================
+
+        [ClientRpc]
+        private void NotifyChaosEventClientRpc(string eventName)
+        {
+            // Placeholder: hook UI warning system here
+            Debug.Log($"[Chaos Alert] {eventName}!");
+        }
+
+        // =================================================================
+        //  RESOLUTION
+        // =================================================================
+
+        private void OnSystemRepaired(SystemRepairedEvent evt)
+        {
+            // Decrement active disasters for repairable events
+            if (evt.SystemName == "Backup Generator" ||
+                evt.SystemName.Contains("Unjammed"))
             {
                 _activeDisasters = Mathf.Max(0, _activeDisasters - 1);
             }

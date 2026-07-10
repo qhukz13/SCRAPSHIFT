@@ -12,6 +12,10 @@ namespace SpaceMaintenance.Player
         private void Awake()
         {
             _input = GetComponent<PlayerInputHandler>();
+            if (_detector == null)
+            {
+                _detector = GetComponentInChildren<InteractionDetector>(true);
+            }
         }
 
         private void Update()
