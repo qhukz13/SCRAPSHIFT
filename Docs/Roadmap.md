@@ -1,35 +1,36 @@
 # SCRAPSHIFT Roadmap
 
-## Phase 1: Core Foundation (Completed)
-- [x] Project Structure
-- [x] Core Architecture (Service Locator, Event Bus)
-- [x] Documentation setup
+The development of SCRAPSHIFT is divided into the following phases:
 
-## Phase 2: Player & Interaction (Completed)
-- [x] Networked Player Controller
-- [x] Physics Grab System
+## Phase 1 — Prototype (Completed)
+- [x] Project Structure & Core Architecture (Service Locator, Event Bus)
+- [x] Networked Player Controller & Multiplayer Foundation
+- [x] Basic Physics Grab & Interaction System
+- [x] Foundational Win/Lose logic
+
+## Phase 2 — Core Gameplay (In Progress)
+- [x] Player Movement overhaul (Sprint, Crouch, Jump, Air control)
 - [x] Basic Inventory
-- [x] **Player Movement** — Sprint (LeftShift, stamina system), Crouch (C toggle / LeftCtrl hold, capsule resize, ceiling check), Jump (with separate Falling state), air control
+- [x] Ship Systems Base (Reactor, Generator, Door, Power Manager)
+- [x] Basic Chaos/Failure System
+- [ ] Implement "Dark Ship" start logic (Reactor initialization turns on UI/Tasks)
+- [ ] Implement robust Task System (Priorities, Timers)
+- [ ] First iteration of Repair Minigames (replacing basic hold-to-repair)
 
-## Phase 3: Ship Systems & Chaos (Completed)
-- [x] Reactor — full state machine (Offline/Starting/Running/Overheating/Critical/Meltdown), SCRAM, cooling
-- [x] Doors — state machine (Open/Closed/Locked/Broken), IPowered, emergency open, lock bypass
-- [x] Power Manager — IPowered consumer registration, priority-based distribution
-- [x] Generator — break/repair cycle
-- [x] Chaos Manager — 5 event types (Generator Break, Door Jam, Door Lock, Reactor Surge, Power Drain)
+## Phase 3 — Vertical Slice (Planned)
+- [ ] Base Hub environment for between-mission progression
+- [ ] Economic loop: Earn money -> Buy upgrades -> Next Shift
+- [ ] Procedural Generation V1 (Ship layout, room placement)
+- [ ] Procedural Generation V2 (Failures, task lists, difficulty scaling)
+- [ ] Additional Ship Systems (Pipes, Windows, Ship Controls)
 
-## Phase 4: Multiplayer Integration (Completed)
-- [x] Unity Lobby & Relay integration
-- [x] Network Game Manager & Spawning
+## Phase 4 — Early Access (Planned)
+- [ ] Expanded Minigame variety and difficulty tiers
+- [ ] Advanced Upgrades (Abilities, expansive tools, cosmetics)
+- [ ] Audio and Visual Effects Polish
+- [ ] Expanded procedural generation parameters
 
-## Phase 5: Polish & Game Loop (In Progress)
-- [x] Mission UI, Win/Lose conditions
-- [x] Main Menu and Lobby UI
-- [x] Basic Texturing (Reactor, Generator, Doors, Floor, Skybox)
-- [ ] Audio and Visual Effects
-- [x] Playtesting and Bug Fixing (UI Layouts, Player Physics, Interaction Exceptions)
-
-## Phase 6: World Building & Assets (Pending)
-- [ ] Create main game map
-- [ ] Add 3D models and textures
-- [ ] Polish environment and lighting
+## Phase 5 — Full Release (Planned)
+- [ ] Full meta-progression balance
+- [ ] Final environment art and 3D models
+- [ ] Comprehensive bug fixing, performance profiling, and playtesting

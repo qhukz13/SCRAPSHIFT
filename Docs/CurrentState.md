@@ -1,21 +1,25 @@
 # Current State
 
+This document reflects the actual, currently implemented systems in the SCRAPSHIFT project.
+
 ## Implemented (Full Systems)
-- Core architecture (ServiceLocator, EventBus, StateMachine).
-- **Player Movement** — 7-state machine (Idle/Moving/Sprinting/Crouching/Jumping/Falling/Carrying). Sprint with stamina system. Crouch with capsule resize, ceiling check, smooth camera lerp. Air control while jumping/falling.
-- Fully networked Player Controller with Physics Grab.
-- **Reactor Controller** — full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown), SCRAM emergency shutdown, IInteractable for manual control, IRepairable for cooling, visual feedback via emissive renderer.
-- **Door Controller** — full state machine (Open / Closed / Locked / Broken), IPowered integration (manual operation without power, emergency open on power loss), IRepairable for unjamming, lock bypass via hold-interact, visual panel feedback.
-- **Power Manager** — IPowered consumer registration, priority-based power distribution, automatic shutdown of low-priority systems when power drops.
-- **Generator Controller** — break/repair cycle with power grid integration.
-- **Chaos Manager** — 5 event types: Generator Break, Door Jam, Door Lock, Reactor Surge, Power Drain. Active disasters apply continuous hull damage.
-- Core Game Loop scripts (DamageManager, MissionManager, WinLoseEvaluator, RoundManager).
-- Mission UI (MissionHUD, MissionResultUI), Main Menu and Lobby UI.
+- **Core Architecture:** `ServiceLocator`, `EventBus`, `StateMachine`.
+- **Player Movement:** 7-state machine (Idle/Moving/Sprinting/Crouching/Jumping/Falling/Carrying). Features stamina system for sprint, capsule resize/ceiling check for crouch, and air control.
+- **Multiplayer & Networking:** Unity Lobby, Relay, and Netcode for GameObjects. Fully networked Player Controller.
+- **Interaction & Inventory:** Physics Grab system for moving items, basic inventory slots, and `IInteractable` raycast logic.
+- **Ship Systems (Foundation):**
+  - **Reactor Controller:** Full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown), SCRAM emergency shutdown.
+  - **Door Controller:** State machine (Open / Closed / Locked / Broken), `IPowered` integration (auto-open on power loss), lock bypass.
+  - **Power Manager:** Priority-based power distribution, shutting down low-priority systems when power drops.
+  - **Generator Controller:** Break/repair cycle integrated with the power grid.
+- **Chaos System:** Basic framework capable of injecting events (Generator Break, Door Jam, Door Lock, Reactor Surge, Power Drain).
+- **Game Loop Base:** Basic `MissionManager`, `WinLoseEvaluator`, `RoundManager`, and Mission UI (HUD, Result Screens).
 
-## In Progress
-- **Phase 5: Polish** — Audio/Visual effects not yet implemented. Systems need wiring up in Unity scenes.
+## In Development / Pending Shift to New Concept
+*Note: The project is currently transitioning to the "Service Company / Procedural Shift" concept. The following are architectural gaps that need to be addressed next.*
 
-## Next Up
-- Add Audio and Visual Effects (alarms, reactor hum, door sounds, footsteps).
-- Create main game map and wire up all systems in scene.
-- Playtesting and Bug Fixing.
+- **Task System:** Currently lacking the prioritized, timer-based task list UI and logic.
+- **Mission Start Logic:** Needs the "Dark Ship" implementation where the game starts unpowered, UI is hidden, and starting the reactor is the mandatory first step.
+- **Minigames:** The current repair system is a basic placeholder. It needs to be replaced with the 5-20 second interactive minigames for each system.
+- **Procedural Generation:** Currently non-existent. Levels are static.
+- **Progression & Base Hub:** No economy, upgrades, or base hub exist yet.

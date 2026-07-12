@@ -1,16 +1,20 @@
 # SCRAPSHIFT - Project Overview
 
 ## Pitch
-**SCRAPSHIFT** is a co-op multiplayer space maintenance game where players must work together to keep a deteriorating spaceship functioning amid chaotic events.
+**SCRAPSHIFT** is a co-op multiplayer space maintenance game. Players work for a cosmic service company, traveling to heavily damaged, procedurally generated spaceships to perform emergency repairs. Each mission is a "Shift" that challenges the crew to restore power, fix critical systems, and escape before catastrophic failure.
 
-## Core Gameplay Loop
-1. **Explore:** Navigate the ship and monitor critical systems.
-2. **Identify:** Locate failing components (reactor, generator, doors).
-3. **Repair:** Gather tools and resources to repair systems before catastrophic failure.
-4. **Survive:** Endure random chaos events like power surges and reactor overloads.
+## Core Concept
+- **The Job:** Arrive at a derelict, unpowered ship. 
+- **The Shift:** Start the reactor to restore power, receive a list of prioritized tasks, and complete them against the clock.
+- **The Payoff:** Earn money for successful repairs, return to base, and purchase upgrades to handle increasingly difficult shifts.
 
-## Key Features
+## Key Features (Vision)
+- **Procedural Generation:** Every shift offers a new ship layout, a different combination of failures, varying task lists, and dynamic timers.
+- **Minigame-Based Repairs:** Every ship system (reactor, doors, generators, pipes) features its own unique, scalable minigame that is easy to learn but hard to master.
+- **Task Prioritization:** Manage critical, high, medium, and low priority tasks. Ignoring a critical task with a time limit means mission failure.
+- **Progression System:** Spend hard-earned credits at the base hub on better tools, faster repair speeds, larger inventory, and new abilities.
+
+## Technical Foundation (Implemented)
 - **Networked Multiplayer:** Cooperative gameplay using Unity Lobby and Netcode for GameObjects.
-- **Physics-Based Interaction:** Carry tools and materials utilizing a robust physics grab system.
-- **Dynamic Chaos System:** Unpredictable events that require immediate player attention.
-- **Modular Architecture:** Built heavily on interfaces (IDamageable, IRepairable) and generic systems (ServiceLocator, EventBus) for easy expansion.
+- **Robust Player Mechanics:** 7-state player controller (including sprint, crouch, jump, air control) and physics-based grabbing.
+- **Modular Architecture:** Built heavily on interfaces (`IDamageable`, `IRepairable`) and decoupled systems (`ServiceLocator`, `EventBus`) for easy expansion of ship systems and minigames.

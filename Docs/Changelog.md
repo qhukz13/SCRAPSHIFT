@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed — Concept Pivot & Documentation Overhaul
+- **Project Pivot:** Transitioned the core concept to **SCRAPSHIFT**, a space service company co-op game where players act as employees completing repair "Shifts" on procedurally generated dark ships.
+- **Documentation:** Completely rewrote the project documentation to act as the single source of truth for the new concept. 
+  - Updated `ProjectOverview.md`, `Architecture.md`, `Systems.md`, `Roadmap.md`, `CurrentState.md`, `Todo.md`.
+  - Created `GameDesign.md` and `GameplayLoop.md`.
+
 ### Added — Environment Polish
 - **Basic Texturing**: Added distinct solid color materials for core interactive objects (Reactor: Orange, Generator: Blue, Doors: Dark Grey) and basic dark coloring for the floor and skybox to improve visual clarity and placeholder aesthetics.
 
