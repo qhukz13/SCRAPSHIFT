@@ -36,6 +36,12 @@ namespace SpaceMaintenance.Missions
             // No longer auto-starting — MissionFlowController calls StartMissionTimer()
             if (IsServer)
             {
+                if (SpaceMaintenance.Core.GlobalMissionParameters.HasCustomSettings && _config != null)
+                {
+                    _config.Mode = SpaceMaintenance.Core.GlobalMissionParameters.Mode;
+                    _config.SurvivalDuration = SpaceMaintenance.Core.GlobalMissionParameters.Duration;
+                    _config.TasksRequired = SpaceMaintenance.Core.GlobalMissionParameters.Quota;
+                }
                 TimeRemaining.Value = _config != null ? _config.SurvivalDuration : 300f;
                 IsGameRunning.Value = false;
             }

@@ -83,7 +83,23 @@ namespace SpaceMaintenance.Player
             if (IsOwner)
             {
                 CameraController.Initialize(Input, Config);
+                
+                // Disable the default scene camera if it exists
+                if (Camera.main != null && Camera.main.gameObject != CameraController.gameObject)
+                {
+                    Camera.main.gameObject.SetActive(false);
+                }
             }
+            else
+            {
+                // Disable camera and AudioListener for other players so they don't override our view
+                var cam = GetComponentInChildren<Camera>();
+                if (cam != null) cam.gameObject.SetActive(false);
+                
+                var audioListener = GetComponentInChildren<AudioListener>();
+                if (audioListener != null) audioListener.enabled = false;
+            }
+            
             CurrentStamina = Config.MaxStamina;
 
             // Cache camera heights

@@ -17,8 +17,6 @@ namespace SpaceMaintenance.Minigames.Games
     {
         // ─── Config ─────────────────────────────────────────────────────
         [Header("Pipe Align Settings")]
-        [SerializeField] private int _baseGridWidth = 3;
-        [SerializeField] private int _baseGridHeight = 3;
 
         [Header("Visual")]
         [SerializeField] private RectTransform _gridPanel;

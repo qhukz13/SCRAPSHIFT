@@ -44,11 +44,12 @@ namespace SpaceMaintenance.UI
             {
                 _ui.ShowLoading($"Lobby Created! Join Code: {joinCode}\nStarting Game...");
                 
-                // Wait briefly so the user can read the join code if they want, though it can also be shown in-game.
-                await System.Threading.Tasks.Task.Delay(1500);
+                // Give Netcode a moment to initialize the host and spawn the PlayerPrefab 
+                // before we trigger a scene change. Without this, the player doesn't spawn.
+                await System.Threading.Tasks.Task.Delay(500);
                 
-                // Transition to GameScene! All connected clients will automatically follow.
-                NetworkManager.Singleton.SceneManager.LoadScene("main", UnityEngine.SceneManagement.LoadSceneMode.Single);
+                // Transition to Hub Scene! All connected clients will automatically follow.
+                NetworkManager.Singleton.SceneManager.LoadScene("hub", UnityEngine.SceneManagement.LoadSceneMode.Single);
             }
             else
             {

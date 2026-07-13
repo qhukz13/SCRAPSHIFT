@@ -9,9 +9,10 @@ namespace SpaceMaintenance.UI
     {
         [SerializeField] private Image _iconImage;
         [SerializeField] private TextMeshProUGUI _amountText;
-        [SerializeField] private Image _selectionBorder;
-        [SerializeField] private Color _selectedColor = Color.white;
-        [SerializeField] private Color _unselectedColor = new Color(1, 1, 1, 0.2f);
+        [SerializeField] private Image _backgroundImage;
+        [SerializeField] private Outline _selectionOutline;
+        [SerializeField] private Color _selectedColor = new Color(0, 1f, 1f, 1f); // Cyan
+        [SerializeField] private Color _unselectedColor = new Color(0, 0, 0, 0); // Transparent outline
 
         public void Setup(ItemData itemData, int amount)
         {
@@ -36,9 +37,14 @@ namespace SpaceMaintenance.UI
 
         public void SetSelected(bool isSelected)
         {
-            if (_selectionBorder != null)
+            if (_selectionOutline != null)
             {
-                _selectionBorder.color = isSelected ? _selectedColor : _unselectedColor;
+                _selectionOutline.effectColor = isSelected ? _selectedColor : _unselectedColor;
+            }
+            if (_backgroundImage != null)
+            {
+                // Slightly lighter background when selected
+                _backgroundImage.color = isSelected ? new Color(0.15f, 0.25f, 0.35f, 0.8f) : new Color(0.05f, 0.1f, 0.15f, 0.8f);
             }
         }
     }

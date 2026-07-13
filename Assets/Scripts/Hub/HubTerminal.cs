@@ -22,6 +22,13 @@ namespace SpaceMaintenance.Hub
             if (!CanInteract(player)) return;
             
             _isInteracting = true;
+
+            if (ShopUI.Instance == null)
+            {
+                var go = new GameObject("ShopUIManager");
+                go.AddComponent<ShopUI>();
+            }
+
             if (ShopUI.Instance != null)
             {
                 ShopUI.Instance.OpenShop(this);
@@ -36,7 +43,7 @@ namespace SpaceMaintenance.Hub
             _isInteracting = false;
         }
 
-        [Rpc(SendTo.Server, RequireOwnership = false)]
+        [Rpc(SendTo.Server)]
         public void RequestPurchaseServerRpc(int price, string upgradeId, RpcParams rpcParams = default)
         {
             if (EconomyManager.Instance != null && EconomyManager.Instance.TrySpendFunds(price))

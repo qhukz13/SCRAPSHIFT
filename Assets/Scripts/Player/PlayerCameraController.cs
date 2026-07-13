@@ -32,6 +32,25 @@ namespace SpaceMaintenance.Player
             }
         }
 
+        private void OnEnable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            // Always disable the default scene camera if it exists so our local player camera is used.
+            if (_cameraTransform != null && Camera.main != null && Camera.main.gameObject != _cameraTransform.gameObject)
+            {
+                Camera.main.gameObject.SetActive(false);
+            }
+        }
+
         public void HandleCameraRotation()
         {
             if (_inputHandler == null || _config == null) return;

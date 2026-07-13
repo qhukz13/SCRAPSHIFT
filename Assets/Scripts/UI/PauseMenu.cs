@@ -234,6 +234,13 @@ namespace SpaceMaintenance.UI
         {
             if (SceneManager.GetActiveScene().name == "MainMenu") return;
 
+            if (UnityEngine.EventSystems.EventSystem.current == null)
+            {
+                var esGO = new GameObject("EventSystem");
+                esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                esGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            }
+
             _isPaused = true;
             _pausePanel.SetActive(false); // Toggle to ensure layout update
             _pausePanel.SetActive(true);

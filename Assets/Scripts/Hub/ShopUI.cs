@@ -170,6 +170,13 @@ namespace SpaceMaintenance.Hub
 
         public void OpenShop(HubTerminal terminal)
         {
+            if (UnityEngine.EventSystems.EventSystem.current == null)
+            {
+                var esGO = new GameObject("EventSystem");
+                esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                esGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            }
+
             _currentTerminal = terminal;
             _shopPanel.SetActive(true);
             Cursor.lockState = CursorLockMode.None;

@@ -33,6 +33,7 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
   - **WireConnectMinigame** — first minigame (connect colored wires to matching sockets).
 
 ## In Development / Next Steps
+- **3D Models:** Find and import 3D models for the Reactor, Generator, Door, Hub Terminal, and Hub Shop into the Models folder (must be provided externally, AI cannot create models).
 - **Minigame Integration:** Wire `IMinigameRepairable` into `GeneratorController` to replace hold-to-repair.
 - **Task UI Prefab:** Create the TaskEntryUI prefab in Unity Editor and wire up references.
 - **Dark Ship Prefab Setup:** Create DarkShipPrompt and StartupPrompt UI GameObjects, assign to MissionHUD.

@@ -18,7 +18,9 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [x] First iteration of Repair Minigames (replacing basic hold-to-repair)
 
 ## Phase 3 — Vertical Slice (Planned)
+- [ ] Find and import 3D Models for Reactor, Generator, Door, Hub Terminal, and Hub Shop. (Models must be created externally and placed in the models folder; AI does not create 3D models).
 - [ ] Base Hub environment for between-mission progression
+- [ ] Upgrade the default Hub scene layout with proper models and structure
 - [ ] Economic loop: Earn money -> Buy upgrades -> Next Shift
 - [ ] Procedural Generation V1 (Ship layout, room placement)
 - [ ] Procedural Generation V2 (Failures, task lists, difficulty scaling)
