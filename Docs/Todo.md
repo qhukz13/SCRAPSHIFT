@@ -12,9 +12,9 @@
 - [ ] **MissionFlowController Prefab:** Add MissionFlowController to the mission scene NetworkObject hierarchy.
 - [ ] **TaskManager Prefab:** Add TaskManager NetworkBehaviour to the mission scene.
 - [x] **Base Hub & Economy:** Create a simple persistent "Bank" or economy manager to save money earned after a mission, and a basic Base Hub scene to transition to between shifts.
-- [ ] **Additional Minigames:** Implement PipeAlign, SequenceInput, PressureBalance, or CircuitTrace.
+- [x] **Additional Minigames:** Implement PipeAlign, SequenceInput, PressureBalance, or CircuitTrace (SequenceInput added).
 
 ## Low Priority
 - [ ] Add sound effects for the dark ship ambiance and reactor startup sequence.
-- [ ] Begin planning the architecture for Procedural Generation of ship rooms.
+- [x] Begin planning the architecture for Procedural Generation of ship rooms.
 - [ ] Add new systems (Pipes, Windows, Controls).

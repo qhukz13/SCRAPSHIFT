@@ -21,7 +21,7 @@ namespace SpaceMaintenance.ShipSystems
         public bool NeedsRepair => NetworkNeedsRepair.Value;
 
         // IMinigameRepairable
-        public SpaceMaintenance.Core.Data.MinigameType MinigameType => SpaceMaintenance.Core.Data.MinigameType.WireConnect;
+        public SpaceMaintenance.Core.MinigameType MinigameType => SpaceMaintenance.Core.MinigameType.WireConnect;
         public int MinigameDifficulty => 1; // Can be scaled later
 
         // IInteractable
