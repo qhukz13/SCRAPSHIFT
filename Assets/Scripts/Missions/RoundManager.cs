@@ -33,24 +33,42 @@ namespace SpaceMaintenance.Missions
 
         public override void OnNetworkSpawn()
         {
+            // No longer auto-starting — MissionFlowController calls StartMissionTimer()
             if (IsServer)
             {
-                StartRound();
+                TimeRemaining.Value = _config != null ? _config.SurvivalDuration : 300f;
+                IsGameRunning.Value = false;
             }
         }
 
-        private void StartRound()
+        /// <summary>Called by MissionFlowController when entering Active phase.</summary>
+        public void StartMissionTimer()
         {
-            if (_config == null) return;
+            if (!IsServer || _config == null) return;
+
             TimeRemaining.Value = _config.SurvivalDuration;
             IsGameRunning.Value = true;
-            Debug.Log($"Round Started! Mode: {_config.Mode}");
+            Debug.Log($"[RoundManager] Mission timer started! Mode: {_config.Mode}, Duration: {_config.SurvivalDuration}s");
 
             EventBus.Publish(new MissionTimerUpdatedEvent
             {
                 TimeRemaining = TimeRemaining.Value,
                 TotalTime = _config.SurvivalDuration
             });
+        }
+
+        /// <summary>Pause the mission timer (e.g. during cutscenes).</summary>
+        public void PauseMissionTimer()
+        {
+            if (!IsServer) return;
+            IsGameRunning.Value = false;
+        }
+
+        /// <summary>Resume a previously paused mission timer.</summary>
+        public void ResumeMissionTimer()
+        {
+            if (!IsServer) return;
+            IsGameRunning.Value = true;
         }
 
         private void Update()
@@ -81,3 +99,4 @@ namespace SpaceMaintenance.Missions
         public MissionConfig GetConfig() => _config;
     }
 }
+

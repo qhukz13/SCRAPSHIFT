@@ -78,4 +78,74 @@ namespace SpaceMaintenance.Core.Data
         public float MaxPower;
         public float Demand;
     }
+
+    // =========================================================================
+    // Dark Ship / Mission Phase events
+    // =========================================================================
+
+    /// <summary>Fired by MissionFlowController when the mission transitions between phases.</summary>
+    public struct MissionPhaseChangedEvent
+    {
+        public MissionPhase OldPhase;
+        public MissionPhase NewPhase;
+    }
+
+    // =========================================================================
+    // Task System events
+    // =========================================================================
+
+    /// <summary>Fired by TaskManager when a new task is created.</summary>
+    public struct TaskCreatedEvent
+    {
+        public string TaskId;
+        public string DisplayName;
+        public TaskPriority Priority;
+        public float TimeLimit; // 0 = no limit
+    }
+
+    /// <summary>Fired by TaskManager when a task's status changes.</summary>
+    public struct TaskStatusChangedEvent
+    {
+        public string TaskId;
+        public TaskStatus OldStatus;
+        public TaskStatus NewStatus;
+    }
+
+    /// <summary>Fired by TaskManager when every required task has been completed.</summary>
+    public struct AllTasksCompletedEvent { }
+
+    /// <summary>Fired by TaskManager when a Critical task's timer expires.</summary>
+    public struct CriticalTaskFailedEvent
+    {
+        public string TaskId;
+    }
+
+    // =========================================================================
+    // Minigame events
+    // =========================================================================
+
+    /// <summary>Fired when a minigame UI opens for a repairable system.</summary>
+    public struct MinigameStartedEvent
+    {
+        public string SystemName;
+        public GameObject Target;
+    }
+
+    /// <summary>Fired when a minigame finishes (success or failure).</summary>
+    public struct MinigameCompletedEvent
+    {
+        public string SystemName;
+        public bool Success;
+    }
+
+    // =========================================================================
+    // Economy events
+    // =========================================================================
+
+    /// <summary>Fired when the company funds change.</summary>
+    public struct FundsChangedEvent
+    {
+        public int OldAmount;
+        public int NewAmount;
+    }
 }

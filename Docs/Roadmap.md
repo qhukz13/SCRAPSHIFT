@@ -13,9 +13,9 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [x] Basic Inventory
 - [x] Ship Systems Base (Reactor, Generator, Door, Power Manager)
 - [x] Basic Chaos/Failure System
-- [ ] Implement "Dark Ship" start logic (Reactor initialization turns on UI/Tasks)
-- [ ] Implement robust Task System (Priorities, Timers)
-- [ ] First iteration of Repair Minigames (replacing basic hold-to-repair)
+- [x] Implement "Dark Ship" start logic (Reactor initialization turns on UI/Tasks)
+- [x] Implement robust Task System (Priorities, Timers)
+- [x] First iteration of Repair Minigames (replacing basic hold-to-repair)
 
 ## Phase 3 — Vertical Slice (Planned)
 - [ ] Base Hub environment for between-mission progression

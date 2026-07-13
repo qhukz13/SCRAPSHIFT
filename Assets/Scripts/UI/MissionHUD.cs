@@ -1,7 +1,8 @@
 // ============================================================================
 // SCRAPSHIFT — MissionHUD.cs
 // In-game HUD displaying mission timer, hull integrity bar, and task counter.
-// Fully event-driven — subscribes to EventBus, no direct manager references.
+// Phase-aware: hides during DarkShip, shows prompt during ReactorStartup,
+// fully visible during Active phase. Event-driven via EventBus.
 // ============================================================================
 
 using SpaceMaintenance.Core;
@@ -33,10 +34,18 @@ namespace SpaceMaintenance.UI
         [SerializeField] private TextMeshProUGUI _warningText;
         [SerializeField] private float _lowTimeThreshold = 30f;
 
+        [Header("Dark Ship Phase")]
+        [SerializeField] private GameObject _darkShipPrompt;   // "FIND THE REACTOR" text/panel
+        [SerializeField] private GameObject _startupPrompt;    // "REACTOR STARTING..." text/panel
+
+        [Header("Main HUD Container")]
+        [SerializeField] private GameObject _mainHudPanel;     // Parent panel for timer/hull/tasks
+
         // Cached values for warning logic
         private float _lastTimeRemaining;
         private float _lastHullPercent = 1f;
         private bool _isGameOver = false;
+        private MissionPhase _currentPhase = MissionPhase.DarkShip;
 
         private void OnEnable()
         {
@@ -44,6 +53,7 @@ namespace SpaceMaintenance.UI
             EventBus.Subscribe<HullIntegrityUpdatedEvent>(OnHullUpdated);
             EventBus.Subscribe<TaskProgressUpdatedEvent>(OnTaskProgressUpdated);
             EventBus.Subscribe<GameOverEvent>(OnGameOver);
+            EventBus.Subscribe<MissionPhaseChangedEvent>(OnPhaseChanged);
         }
 
         private void OnDisable()
@@ -52,6 +62,72 @@ namespace SpaceMaintenance.UI
             EventBus.Unsubscribe<HullIntegrityUpdatedEvent>(OnHullUpdated);
             EventBus.Unsubscribe<TaskProgressUpdatedEvent>(OnTaskProgressUpdated);
             EventBus.Unsubscribe<GameOverEvent>(OnGameOver);
+            EventBus.Unsubscribe<MissionPhaseChangedEvent>(OnPhaseChanged);
+        }
+
+        // =====================================================================
+        // Mission Phase
+        // =====================================================================
+        private void OnPhaseChanged(MissionPhaseChangedEvent evt)
+        {
+            _currentPhase = evt.NewPhase;
+            UpdatePhaseVisibility();
+        }
+
+        private void UpdatePhaseVisibility()
+        {
+            switch (_currentPhase)
+            {
+                case MissionPhase.DarkShip:
+                    // Hide everything except the "Find the Reactor" prompt
+                    SetMainHudVisible(false);
+                    SetDarkShipPromptVisible(true);
+                    SetStartupPromptVisible(false);
+                    break;
+
+                case MissionPhase.ReactorStartup:
+                    // Show "Reactor Starting..." prompt
+                    SetMainHudVisible(false);
+                    SetDarkShipPromptVisible(false);
+                    SetStartupPromptVisible(true);
+                    break;
+
+                case MissionPhase.Active:
+                    // Full HUD
+                    SetMainHudVisible(true);
+                    SetDarkShipPromptVisible(false);
+                    SetStartupPromptVisible(false);
+                    break;
+
+                case MissionPhase.Completed:
+                case MissionPhase.Failed:
+                    // Hide prompts, main HUD stays for result screen to overlay
+                    SetDarkShipPromptVisible(false);
+                    SetStartupPromptVisible(false);
+                    break;
+            }
+        }
+
+        private void SetMainHudVisible(bool visible)
+        {
+            if (_mainHudPanel != null) _mainHudPanel.SetActive(visible);
+            // Fallback: toggle individual elements if no parent panel
+            else
+            {
+                if (_timerText != null) _timerText.gameObject.SetActive(visible);
+                if (_hullFillBar != null) _hullFillBar.transform.parent.gameObject.SetActive(visible);
+                if (_taskPanel != null) _taskPanel.SetActive(visible);
+            }
+        }
+
+        private void SetDarkShipPromptVisible(bool visible)
+        {
+            if (_darkShipPrompt != null) _darkShipPrompt.SetActive(visible);
+        }
+
+        private void SetStartupPromptVisible(bool visible)
+        {
+            if (_startupPrompt != null) _startupPrompt.SetActive(visible);
         }
 
         // =====================================================================
@@ -59,7 +135,7 @@ namespace SpaceMaintenance.UI
         // =====================================================================
         private void OnTimerUpdated(MissionTimerUpdatedEvent evt)
         {
-            if (_isGameOver) return;
+            if (_isGameOver || _currentPhase != MissionPhase.Active) return;
 
             _lastTimeRemaining = evt.TimeRemaining;
 
@@ -112,7 +188,7 @@ namespace SpaceMaintenance.UI
         // =====================================================================
         private void OnTaskProgressUpdated(TaskProgressUpdatedEvent evt)
         {
-            if (_isGameOver) return;
+            if (_isGameOver || _currentPhase != MissionPhase.Active) return;
 
             if (_taskPanel != null)
             {
@@ -143,6 +219,7 @@ namespace SpaceMaintenance.UI
         private void UpdateWarnings()
         {
             if (_warningPanel == null || _warningText == null) return;
+            if (_currentPhase != MissionPhase.Active) return;
 
             // Hull critical warning takes priority
             if (_lastHullPercent <= _hullDangerThreshold)

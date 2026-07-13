@@ -40,6 +40,7 @@ namespace SpaceMaintenance.Missions.UI
             EventBus.Subscribe<GameOverEvent>(OnGameOver);
             EventBus.Subscribe<MissionTimerUpdatedEvent>(OnTimerUpdated);
             EventBus.Subscribe<TaskProgressUpdatedEvent>(OnTaskProgressUpdated);
+            EventBus.Subscribe<FundsChangedEvent>(OnFundsChanged);
         }
 
         private void OnDisable()
@@ -47,6 +48,7 @@ namespace SpaceMaintenance.Missions.UI
             EventBus.Unsubscribe<GameOverEvent>(OnGameOver);
             EventBus.Unsubscribe<MissionTimerUpdatedEvent>(OnTimerUpdated);
             EventBus.Unsubscribe<TaskProgressUpdatedEvent>(OnTaskProgressUpdated);
+            EventBus.Unsubscribe<FundsChangedEvent>(OnFundsChanged);
         }
 
         private void OnTimerUpdated(MissionTimerUpdatedEvent evt)
@@ -59,6 +61,13 @@ namespace SpaceMaintenance.Missions.UI
         {
             _tasksCompleted = evt.Completed;
             _tasksRequired = evt.Required;
+        }
+
+        private int _sessionPayout = 0;
+        private void OnFundsChanged(FundsChangedEvent evt)
+        {
+            // If funds change while we are in mission, it's likely the end-of-mission payout
+            _sessionPayout += (evt.NewAmount - evt.OldAmount);
         }
 
         private void OnGameOver(GameOverEvent evt)
@@ -97,17 +106,36 @@ namespace SpaceMaintenance.Missions.UI
                         stats += $"\nTasks Completed: {_tasksCompleted} / {_tasksRequired}";
                     }
 
+                    if (_sessionPayout > 0)
+                    {
+                        stats += $"\n<color=yellow>Earned: ${_sessionPayout}</color>";
+                    }
+
                     _statsText.text = stats;
+                }
+
+                if (_restartButton != null)
+                {
+                    var text = _restartButton.GetComponentInChildren<TextMeshProUGUI>();
+                    if (text != null) text.text = "RETURN TO HUB";
                 }
                 
                 Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
             }
         }
 
         private void OnRestartClicked()
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+            // Only the server/host can trigger a networked scene change
+            if (Unity.Netcode.NetworkManager.Singleton.IsServer)
+            {
+                Unity.Netcode.NetworkManager.Singleton.SceneManager.LoadScene("Hub", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            }
+            else
+            {
+                Debug.Log("Waiting for Host to return to Hub...");
+            }
         }
     }
 }
