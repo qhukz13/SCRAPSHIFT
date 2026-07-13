@@ -35,6 +35,7 @@ namespace SpaceMaintenance.Player
         public void HandleCameraRotation()
         {
             if (_inputHandler == null || _config == null) return;
+            if (Cursor.lockState != CursorLockMode.Locked) return;
 
             float mouseX = _inputHandler.LookInput.x * _config.MouseSensitivity;
             float mouseY = _inputHandler.LookInput.y * _config.MouseSensitivity;

@@ -45,6 +45,20 @@ namespace SpaceMaintenance.Tasks.UI
             EventBus.Unsubscribe<MissionPhaseChangedEvent>(OnPhaseChanged);
         }
 
+        private void Start()
+        {
+            if (SpaceMaintenance.Missions.MissionFlowController.Instance != null)
+            {
+                _currentPhase = SpaceMaintenance.Missions.MissionFlowController.Instance.CurrentPhase.Value;
+            }
+            
+            bool visible = _currentPhase == MissionPhase.Active;
+            if (_taskListContainer != null)
+                _taskListContainer.gameObject.SetActive(visible);
+            if (_headerText != null)
+                _headerText.gameObject.SetActive(visible);
+        }
+
         private void Update()
         {
             // Update timers for active critical tasks from TaskManager

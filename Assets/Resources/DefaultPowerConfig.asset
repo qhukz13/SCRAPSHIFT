@@ -13,5 +13,17 @@ MonoBehaviour:
   m_Name: DefaultPowerConfig
   m_EditorClassIdentifier: 
   MaxReactorPower: 1000
-  DoorPowerConsumption: 10
   GeneratorPowerOutput: 200
+  ReactorHeatRate: 0.015
+  ReactorHeatWarningThreshold: 0.5
+  ReactorHeatCriticalThreshold: 0.8
+  ReactorCooldownRate: 0.2
+  ReactorSurgePenalty: 0.3
+  ReactorScramCooldownTime: 10
+  ReactorStartupTime: 3
+  ReactorMeltdownDamage: 100
+  DoorPowerConsumption: 10
+  DoorForceOpenTime: 3
+  DoorUnjamRepairTime: 5
+  DoorLockBypassTime: 8
+  DoorsOpenOnPowerLoss: 1

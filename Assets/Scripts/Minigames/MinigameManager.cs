@@ -179,6 +179,14 @@ namespace SpaceMaintenance.Minigames
             if (prefab == null) return null;
 
             var instance = Instantiate(prefab, _minigameCanvas.transform);
+            var rt = instance.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.sizeDelta = Vector2.zero;
+                rt.anchoredPosition = Vector2.zero;
+            }
             instance.gameObject.SetActive(false);
             _instances[type] = instance;
 

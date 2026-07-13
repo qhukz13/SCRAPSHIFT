@@ -65,6 +65,15 @@ namespace SpaceMaintenance.UI
             EventBus.Unsubscribe<MissionPhaseChangedEvent>(OnPhaseChanged);
         }
 
+        private void Start()
+        {
+            if (Missions.MissionFlowController.Instance != null)
+            {
+                _currentPhase = Missions.MissionFlowController.Instance.CurrentPhase.Value;
+            }
+            UpdatePhaseVisibility();
+        }
+
         // =====================================================================
         // Mission Phase
         // =====================================================================
@@ -115,7 +124,7 @@ namespace SpaceMaintenance.UI
             else
             {
                 if (_timerText != null) _timerText.gameObject.SetActive(visible);
-                if (_hullFillBar != null) _hullFillBar.transform.parent.gameObject.SetActive(visible);
+                if (_hullFillBar != null) _hullFillBar.gameObject.SetActive(visible);
                 if (_taskPanel != null) _taskPanel.SetActive(visible);
             }
         }

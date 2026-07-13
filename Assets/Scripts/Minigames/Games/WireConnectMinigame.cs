@@ -113,7 +113,43 @@ namespace SpaceMaintenance.Minigames.Games
             // Handle drag visual
             if (_isDragging && _dragLine != null)
             {
-                UpdateDragLine();
+                UpdateDragLine(Input.mousePosition);
+            }
+
+            // Handle Drag & Drop Interaction
+            if (_isDragging)
+            {
+                if (Input.GetMouseButtonUp(0))
+                {
+                    int dropIndex = GetRightPortUnderMouse(Input.mousePosition);
+                    if (dropIndex >= 0)
+                    {
+                        TryConnect(_dragSourceIndex, dropIndex);
+                    }
+                    
+                    _isDragging = false;
+                    _dragSourceIndex = -1;
+                    if (_dragLine != null)
+                        _dragLine.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    int startIndex = GetLeftPortUnderMouse(Input.mousePosition);
+                    if (startIndex >= 0 && !_connected[startIndex])
+                    {
+                        _isDragging = true;
+                        _dragSourceIndex = startIndex;
+                        if (_dragLineImage != null)
+                        {
+                            _dragLineImage.color = WireColors[startIndex % WireColors.Length];
+                            _dragLine.gameObject.SetActive(true);
+                            UpdateDragLine(Input.mousePosition);
+                        }
+                    }
+                }
             }
         }
 
@@ -160,13 +196,16 @@ namespace SpaceMaintenance.Minigames.Games
             if (_wirePanel == null)
             {
                 // Create wire panel if not assigned
-                var go = new GameObject("WirePanel", typeof(RectTransform));
+                var go = new GameObject("WirePanel", typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(transform, false);
                 _wirePanel = go.GetComponent<RectTransform>();
                 _wirePanel.anchorMin = new Vector2(0.1f, 0.15f);
                 _wirePanel.anchorMax = new Vector2(0.9f, 0.85f);
                 _wirePanel.offsetMin = Vector2.zero;
                 _wirePanel.offsetMax = Vector2.zero;
+
+                var img = go.GetComponent<Image>();
+                img.color = new Color(0.1f, 0.1f, 0.15f, 0.95f); // Dark blue-grey background
             }
 
             // Title
@@ -200,8 +239,7 @@ namespace SpaceMaintenance.Minigames.Games
                 int leftIdx = i;
 
                 // Add click handler for left port (start drag)
-                var leftButton = leftPort.gameObject.AddComponent<Button>();
-                leftButton.onClick.AddListener(() => OnLeftPortClicked(leftIdx));
+                // Obsolete: interaction is now handled in Update()
                 _leftPorts.Add(leftPort);
 
                 // Right port (shuffled color)
@@ -210,8 +248,7 @@ namespace SpaceMaintenance.Minigames.Games
                 var rightPort = CreatePort(rightColor, new Vector2(0.85f, yPos - 0.03f), new Vector2(0.92f, yPos + 0.03f));
 
                 int rightIdx = i;
-                var rightButton = rightPort.gameObject.AddComponent<Button>();
-                rightButton.onClick.AddListener(() => OnRightPortClicked(rightIdx));
+                // Obsolete: interaction is now handled in Update()
                 _rightPorts.Add(rightPort);
             }
 
@@ -280,41 +317,42 @@ namespace SpaceMaintenance.Minigames.Games
         //  INTERACTION
         // =================================================================
 
-        private void OnLeftPortClicked(int leftIndex)
+        private int GetLeftPortUnderMouse(Vector2 mousePos)
         {
-            if (!IsActive || _connected[leftIndex]) return;
-
-            _isDragging = true;
-            _dragSourceIndex = leftIndex;
-
-            if (_dragLineImage != null)
+            for (int i = 0; i < _leftPorts.Count; i++)
             {
-                _dragLineImage.color = WireColors[leftIndex % WireColors.Length];
-                _dragLine.gameObject.SetActive(true);
+                if (_leftPorts[i] != null && RectTransformUtility.RectangleContainsScreenPoint(_leftPorts[i].rectTransform, mousePos, null))
+                    return i;
             }
+            return -1;
         }
 
-        private void OnRightPortClicked(int rightIndex)
+        private int GetRightPortUnderMouse(Vector2 mousePos)
         {
-            if (!IsActive || !_isDragging || _dragSourceIndex < 0) return;
+            for (int i = 0; i < _rightPorts.Count; i++)
+            {
+                if (_rightPorts[i] != null && RectTransformUtility.RectangleContainsScreenPoint(_rightPorts[i].rectTransform, mousePos, null))
+                    return i;
+            }
+            return -1;
+        }
 
-            // Check if this is the correct connection
-            if (_correctMapping[_dragSourceIndex] == rightIndex)
+        private void TryConnect(int leftIndex, int rightIndex)
+        {
+            if (_correctMapping[leftIndex] == rightIndex)
             {
                 // Correct!
-                _connected[_dragSourceIndex] = true;
+                _connected[leftIndex] = true;
                 _connectedCount++;
 
-                // Draw permanent connection line
-                DrawConnectionLine(_dragSourceIndex, rightIndex);
+                DrawConnectionLine(leftIndex, rightIndex);
 
-                // Dim the connected ports
-                if (_leftPorts[_dragSourceIndex] != null)
-                    _leftPorts[_dragSourceIndex].color *= 0.6f;
+                if (_leftPorts[leftIndex] != null)
+                    _leftPorts[leftIndex].color *= 0.6f;
                 if (_rightPorts[rightIndex] != null)
                     _rightPorts[rightIndex].color *= 0.6f;
 
-                Debug.Log($"[WireConnect] Connected wire {_dragSourceIndex} → {rightIndex}");
+                Debug.Log($"[WireConnect] Connected wire {leftIndex} → {rightIndex}");
 
                 if (_connectedCount >= _wireCount)
                 {
@@ -323,40 +361,49 @@ namespace SpaceMaintenance.Minigames.Games
             }
             else
             {
-                // Wrong connection — visual feedback
-                Debug.Log($"[WireConnect] Wrong connection: {_dragSourceIndex} → {rightIndex}");
+                Debug.Log($"[WireConnect] Wrong connection: {leftIndex} → {rightIndex}");
             }
-
-            // End drag
-            _isDragging = false;
-            _dragSourceIndex = -1;
-            if (_dragLine != null)
-                _dragLine.gameObject.SetActive(false);
         }
 
-        private void UpdateDragLine()
+        private void UpdateDragLine(Vector2 mousePos)
         {
-            // Simple visual feedback — just show/hide the drag indicator
-            // A full line-drawing implementation would use LineRenderer or UI line
+            if (_dragLine == null || _dragSourceIndex < 0 || _leftPorts[_dragSourceIndex] == null) return;
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(_wirePanel, _leftPorts[_dragSourceIndex].rectTransform.position, null, out Vector2 localStart);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(_wirePanel, mousePos, null, out Vector2 localEnd);
+
+            Vector2 dir = localEnd - localStart;
+            
+            _dragLine.localPosition = localStart + dir / 2f;
+            
+            // Un-anchor dragline so sizeDelta behaves like absolute pixels
+            _dragLine.anchorMin = new Vector2(0.5f, 0.5f);
+            _dragLine.anchorMax = new Vector2(0.5f, 0.5f);
+            _dragLine.sizeDelta = new Vector2(dir.magnitude, 12f);
+            _dragLine.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
         }
 
         private void DrawConnectionLine(int leftIndex, int rightIndex)
         {
             if (_wirePanel == null) return;
 
-            // Create a simple colored bar between the ports
             var go = new GameObject("Connection", typeof(RectTransform), typeof(Image));
             go.transform.SetParent(_wirePanel, false);
 
             var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.15f, _leftPorts[leftIndex].rectTransform.anchorMin.y + 0.01f);
-            rt.anchorMax = new Vector2(0.85f, _leftPorts[leftIndex].rectTransform.anchorMax.y - 0.01f);
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(_wirePanel, _leftPorts[leftIndex].rectTransform.position, null, out Vector2 localStart);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(_wirePanel, _rightPorts[rightIndex].rectTransform.position, null, out Vector2 localEnd);
+
+            Vector2 dir = localEnd - localStart;
+            
+            rt.localPosition = localStart + dir / 2f;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(dir.magnitude, 12f);
+            rt.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
 
             var img = go.GetComponent<Image>();
             Color lineColor = WireColors[leftIndex % WireColors.Length];
-            lineColor.a = 0.6f;
             img.color = lineColor;
 
             _connectionLines.Add(img);

@@ -7,6 +7,7 @@
 using SpaceMaintenance.Core;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 namespace SpaceMaintenance.Tasks
 {
@@ -68,7 +69,11 @@ namespace SpaceMaintenance.Tasks
 
         public bool Equals(TaskInstance other)
         {
-            return TaskId.Equals(other.TaskId);
+            return TaskId.Equals(other.TaskId) &&
+                   Status == other.Status &&
+                   Priority == other.Priority &&
+                   Mathf.Approximately(TimeRemaining, other.TimeRemaining) &&
+                   Mathf.Approximately(TimeLimit, other.TimeLimit);
         }
 
         public override int GetHashCode()
