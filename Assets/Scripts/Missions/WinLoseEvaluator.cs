@@ -1,3 +1,9 @@
+// ============================================================================
+// SCRAPSHIFT — WinLoseEvaluator.cs
+// Evaluates win/lose conditions. Integrates with TaskManager for task-based
+// victory/failure, hull integrity for destruction loss, and mission timer.
+// ============================================================================
+
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Core.Data;
 using SpaceMaintenance.Damage;
@@ -10,42 +16,71 @@ namespace SpaceMaintenance.Missions
     {
         private bool _gameOverTriggered = false;
 
+        public override void OnNetworkSpawn()
+        {
+            if (IsServer)
+            {
+                EventBus.Subscribe<CriticalTaskFailedEvent>(OnCriticalTaskFailed);
+                EventBus.Subscribe<AllTasksCompletedEvent>(OnAllTasksCompleted);
+            }
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsServer)
+            {
+                EventBus.Unsubscribe<CriticalTaskFailedEvent>(OnCriticalTaskFailed);
+                EventBus.Unsubscribe<AllTasksCompletedEvent>(OnAllTasksCompleted);
+            }
+        }
+
         private void Update()
         {
             if (!IsServer || _gameOverTriggered) return;
             if (RoundManager.Instance == null || !RoundManager.Instance.IsGameRunning.Value) return;
 
-            // Check Lose Condition (Hull Integrity)
+            // Check Lose Condition — Hull Integrity
             if (DamageManager.Instance != null && DamageManager.Instance.HullIntegrity.Value <= 0)
             {
                 TriggerGameOver(false, "Hull integrity reached 0. The ship has been destroyed.");
                 return;
             }
 
-            var config = RoundManager.Instance.GetConfig();
-            if (config == null) return;
-
-            // Check Win/Lose Conditions based on Game Mode
-            if (config.Mode == GameMode.Survival)
+            // Check Lose Condition — Timer expired
+            if (RoundManager.Instance.TimeRemaining.Value <= 0)
             {
-                if (RoundManager.Instance.TimeRemaining.Value <= 0)
+                int completed = 0;
+                int total = 0;
+                if (Tasks.TaskManager.Instance != null)
                 {
-                    TriggerGameOver(true, "You survived the entire mission duration!");
+                    completed = Tasks.TaskManager.Instance.GetCompletedCount();
+                    total = Tasks.TaskManager.Instance.ActiveTasks.Count;
                 }
-            }
-            else if (config.Mode == GameMode.Tasks)
-            {
-                if (MissionManager.Instance != null && MissionManager.Instance.TasksCompleted.Value >= config.TasksRequired)
-                {
-                    TriggerGameOver(true, $"All {config.TasksRequired} tasks completed!");
-                }
-                else if (RoundManager.Instance.TimeRemaining.Value <= 0)
-                {
-                    int completed = MissionManager.Instance != null ? MissionManager.Instance.TasksCompleted.Value : 0;
-                    TriggerGameOver(false, $"Time ran out. Tasks completed: {completed}/{config.TasksRequired}.");
-                }
+                TriggerGameOver(false, $"Time ran out. Tasks completed: {completed}/{total}.");
             }
         }
+
+        // =================================================================
+        //  EVENT HANDLERS
+        // =================================================================
+
+        private void OnCriticalTaskFailed(CriticalTaskFailedEvent evt)
+        {
+            if (!IsServer || _gameOverTriggered) return;
+            TriggerGameOver(false, $"Critical task failed: {evt.TaskId}. Mission lost.");
+        }
+
+        private void OnAllTasksCompleted(AllTasksCompletedEvent evt)
+        {
+            if (!IsServer || _gameOverTriggered) return;
+            int completed = Tasks.TaskManager.Instance != null
+                ? Tasks.TaskManager.Instance.GetCompletedCount() : 0;
+            TriggerGameOver(true, $"All {completed} tasks completed! Ship stabilized.");
+        }
+
+        // =================================================================
+        //  GAME OVER
+        // =================================================================
 
         private void TriggerGameOver(bool won, string reason)
         {
@@ -62,4 +97,3 @@ namespace SpaceMaintenance.Missions
         }
     }
 }
-

@@ -19,6 +19,10 @@ namespace SpaceMaintenance.Chaos
         
         [SerializeField] private ChaosEventConfig _config;
 
+        // ─── Networked State ────────────────────────────────────────────
+        public NetworkVariable<bool> IsActive = new NetworkVariable<bool>(false);
+
+        // ─── Server-only ────────────────────────────────────────────────
         private float _timeSinceLastEvent = 0f;
         private float _timeSinceLastDamage = 0f;
         private int _activeDisasters = 0;
@@ -33,7 +37,9 @@ namespace SpaceMaintenance.Chaos
         {
             if (IsServer)
             {
+                IsActive.Value = false; // Starts inactive — MissionFlowController activates
                 EventBus.Subscribe<SystemRepairedEvent>(OnSystemRepaired);
+                EventBus.Subscribe<MissionPhaseChangedEvent>(OnMissionPhaseChanged);
             }
         }
 
@@ -42,12 +48,13 @@ namespace SpaceMaintenance.Chaos
             if (IsServer)
             {
                 EventBus.Unsubscribe<SystemRepairedEvent>(OnSystemRepaired);
+                EventBus.Unsubscribe<MissionPhaseChangedEvent>(OnMissionPhaseChanged);
             }
         }
 
         private void Update()
         {
-            if (!IsServer || _config == null) return;
+            if (!IsServer || _config == null || !IsActive.Value) return;
 
             // Spawn random events
             _timeSinceLastEvent += Time.deltaTime;
@@ -198,6 +205,42 @@ namespace SpaceMaintenance.Chaos
         {
             // Placeholder: hook UI warning system here
             Debug.Log($"[Chaos Alert] {eventName}!");
+        }
+
+        // =================================================================
+        //  ACTIVATION (called by MissionFlowController)
+        // =================================================================
+
+        /// <summary>Enable chaos events. Called when the mission enters Active phase.</summary>
+        public void Activate()
+        {
+            if (!IsServer) return;
+            IsActive.Value = true;
+            _timeSinceLastEvent = 0f;
+            Debug.Log("[Chaos] Activated.");
+        }
+
+        /// <summary>Disable chaos events. Called when the mission ends.</summary>
+        public void Deactivate()
+        {
+            if (!IsServer) return;
+            IsActive.Value = false;
+            Debug.Log("[Chaos] Deactivated.");
+        }
+
+        // =================================================================
+        //  MISSION PHASE HANDLER
+        // =================================================================
+
+        private void OnMissionPhaseChanged(MissionPhaseChangedEvent evt)
+        {
+            if (!IsServer) return;
+
+            // Auto-deactivate when mission ends
+            if (evt.NewPhase == MissionPhase.Completed || evt.NewPhase == MissionPhase.Failed)
+            {
+                Deactivate();
+            }
         }
 
         // =================================================================

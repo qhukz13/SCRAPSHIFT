@@ -1,3 +1,9 @@
+// ============================================================================
+// SCRAPSHIFT — MissionManager.cs
+// Lightweight mission coordinator. Delegates task tracking to TaskManager.
+// Retained for backward compatibility and as a central reference point.
+// ============================================================================
+
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Core.Data;
 using Unity.Netcode;
@@ -9,6 +15,7 @@ namespace SpaceMaintenance.Missions
     {
         public static MissionManager Instance { get; private set; }
 
+        /// <summary>Legacy field — now mirrors TaskManager's completed count.</summary>
         public NetworkVariable<int> TasksCompleted = new NetworkVariable<int>(0);
 
         private void Awake()
@@ -23,7 +30,6 @@ namespace SpaceMaintenance.Missions
             {
                 TasksCompleted.Value = 0;
                 EventBus.Subscribe<SystemRepairedEvent>(OnSystemRepaired);
-                PublishTaskProgress();
             }
         }
 
@@ -40,23 +46,7 @@ namespace SpaceMaintenance.Missions
             if (!IsServer) return;
             
             TasksCompleted.Value++;
-            Debug.Log($"Task Completed! Total: {TasksCompleted.Value}");
-            PublishTaskProgress();
-        }
-
-        private void PublishTaskProgress()
-        {
-            int required = 0;
-            if (RoundManager.Instance != null && RoundManager.Instance.GetConfig() != null)
-            {
-                required = RoundManager.Instance.GetConfig().TasksRequired;
-            }
-
-            EventBus.Publish(new TaskProgressUpdatedEvent
-            {
-                Completed = TasksCompleted.Value,
-                Required = required
-            });
+            Debug.Log($"[MissionManager] System repaired: {evt.SystemName} (Total: {TasksCompleted.Value})");
         }
     }
 }

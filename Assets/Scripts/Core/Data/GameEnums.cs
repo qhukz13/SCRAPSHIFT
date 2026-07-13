@@ -107,4 +107,43 @@ namespace SpaceMaintenance.Core
         Repairing,
         Dead
     }
+
+    /// <summary>Phases of a mission for Dark Ship flow.</summary>
+    public enum MissionPhase
+    {
+        DarkShip,       // Ship unpowered, UI hidden, find the reactor
+        ReactorStartup, // Reactor is booting up
+        Active,         // Mission active — timer running, tasks visible, chaos enabled
+        Completed,      // Victory
+        Failed          // Defeat
+    }
+
+    /// <summary>Priority levels for mission tasks.</summary>
+    public enum TaskPriority
+    {
+        Critical,   // Strict time limit — failure means mission lost
+        High,       // Urgent but no hard timer
+        Medium,     // Standard repair tasks
+        Low         // Optional / bonus tasks
+    }
+
+    /// <summary>Runtime status of a task.</summary>
+    public enum TaskStatus
+    {
+        Pending,    // Not yet started
+        Active,     // In progress
+        Completed,  // Successfully finished
+        Failed      // Timer expired (Critical only)
+    }
+
+    /// <summary>Types of repair minigames.</summary>
+    public enum MinigameType
+    {
+        None,               // Uses legacy IRepairable hold-to-repair
+        WireConnect,        // Connect colored wires to matching sockets
+        PipeAlign,          // Rotate pipe segments to form a path
+        SequenceInput,      // Enter a displayed sequence correctly
+        PressureBalance,    // Keep a gauge within the green zone
+        CircuitTrace        // Trace a circuit path on a board
+    }
 }
