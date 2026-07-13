@@ -16,7 +16,11 @@ namespace SpaceMaintenance.UI
         public static PauseMenu Instance { get; private set; }
 
         private GameObject _pausePanel;
+        private GameObject _settingsPanel;
         private bool _isPaused = false;
+        private TextMeshProUGUI _volText;
+        private TextMeshProUGUI _sensText;
+        private TextMeshProUGUI _fsText;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Initialize()
@@ -58,20 +62,104 @@ namespace SpaceMaintenance.UI
             _pausePanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.8f);
 
             // Title
-            CreateText("PAUSED", 64, new Vector2(0, 0.7f), new Vector2(1, 0.9f));
+            CreateText(_pausePanel.transform, "PAUSED", 64, new Vector2(0, 0.7f), new Vector2(1, 0.9f));
             
             // Buttons
-            CreateButton("Resume Game", new Vector2(0.35f, 0.5f), new Vector2(0.65f, 0.6f), Resume);
-            CreateButton("Settings", new Vector2(0.35f, 0.35f), new Vector2(0.65f, 0.45f), () => Debug.Log("Settings not implemented yet!"));
-            CreateButton("Main Menu", new Vector2(0.35f, 0.2f), new Vector2(0.65f, 0.3f), GoToMainMenu);
+            CreateButton(_pausePanel.transform, "Resume Game", new Vector2(0.35f, 0.5f), new Vector2(0.65f, 0.6f), Resume);
+            CreateButton(_pausePanel.transform, "Settings", new Vector2(0.35f, 0.35f), new Vector2(0.65f, 0.45f), OpenSettings);
+            CreateButton(_pausePanel.transform, "Main Menu", new Vector2(0.35f, 0.2f), new Vector2(0.65f, 0.3f), GoToMainMenu);
 
             _pausePanel.SetActive(false);
+
+            BuildSettingsUI(canvasGO.transform);
         }
 
-        private TextMeshProUGUI CreateText(string text, int size, Vector2 min, Vector2 max)
+        private void BuildSettingsUI(Transform canvasTransform)
+        {
+            _settingsPanel = new GameObject("SettingsPanel", typeof(RectTransform), typeof(Image));
+            _settingsPanel.transform.SetParent(canvasTransform, false);
+            
+            var rt = _settingsPanel.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            
+            _settingsPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.9f);
+
+            CreateText(_settingsPanel.transform, "SETTINGS", 64, new Vector2(0, 0.8f), new Vector2(1, 0.9f));
+
+            // Volume
+            _volText = CreateText(_settingsPanel.transform, "Master Volume: 100%", 32, new Vector2(0.2f, 0.6f), new Vector2(0.8f, 0.7f));
+            CreateButton(_settingsPanel.transform, "-", new Vector2(0.3f, 0.5f), new Vector2(0.4f, 0.58f), () => ChangeVolume(-0.1f));
+            CreateButton(_settingsPanel.transform, "+", new Vector2(0.6f, 0.5f), new Vector2(0.7f, 0.58f), () => ChangeVolume(0.1f));
+
+            // Sensitivity
+            _sensText = CreateText(_settingsPanel.transform, "Sensitivity: 2.0", 32, new Vector2(0.2f, 0.4f), new Vector2(0.8f, 0.5f));
+            CreateButton(_settingsPanel.transform, "-", new Vector2(0.3f, 0.3f), new Vector2(0.4f, 0.38f), () => ChangeSensitivity(-0.2f));
+            CreateButton(_settingsPanel.transform, "+", new Vector2(0.6f, 0.3f), new Vector2(0.7f, 0.38f), () => ChangeSensitivity(0.2f));
+
+            // Fullscreen
+            _fsText = CreateText(_settingsPanel.transform, "Fullscreen: ON", 32, new Vector2(0.2f, 0.2f), new Vector2(0.8f, 0.3f));
+            CreateButton(_settingsPanel.transform, "Toggle Fullscreen", new Vector2(0.35f, 0.1f), new Vector2(0.65f, 0.18f), ToggleFullscreen);
+
+            // Back
+            CreateButton(_settingsPanel.transform, "Back", new Vector2(0.8f, 0.05f), new Vector2(0.95f, 0.15f), CloseSettings);
+
+            _settingsPanel.SetActive(false);
+        }
+
+        private void OpenSettings()
+        {
+            _pausePanel.SetActive(false);
+            _settingsPanel.SetActive(true);
+            UpdateSettingsText();
+        }
+
+        private void CloseSettings()
+        {
+            _settingsPanel.SetActive(false);
+            _pausePanel.SetActive(true);
+        }
+
+        private void ChangeVolume(float delta)
+        {
+            if (SpaceMaintenance.Core.SettingsManager.Instance == null) return;
+            var current = SpaceMaintenance.Core.SettingsManager.Instance.MasterVolume;
+            SpaceMaintenance.Core.SettingsManager.Instance.SetMasterVolume(current + delta);
+            UpdateSettingsText();
+        }
+
+        private void ChangeSensitivity(float delta)
+        {
+            if (SpaceMaintenance.Core.SettingsManager.Instance == null) return;
+            var current = SpaceMaintenance.Core.SettingsManager.Instance.Sensitivity;
+            SpaceMaintenance.Core.SettingsManager.Instance.SetSensitivity(current + delta);
+            UpdateSettingsText();
+        }
+
+        private void ToggleFullscreen()
+        {
+            if (SpaceMaintenance.Core.SettingsManager.Instance == null) return;
+            var current = SpaceMaintenance.Core.SettingsManager.Instance.IsFullscreen;
+            SpaceMaintenance.Core.SettingsManager.Instance.SetFullscreen(!current);
+            UpdateSettingsText();
+        }
+
+        private void UpdateSettingsText()
+        {
+            if (SpaceMaintenance.Core.SettingsManager.Instance == null) return;
+            var settings = SpaceMaintenance.Core.SettingsManager.Instance;
+            
+            _volText.text = $"Master Volume: {Mathf.RoundToInt(settings.MasterVolume * 100)}%";
+            _sensText.text = $"Sensitivity: {settings.Sensitivity:F1}";
+            _fsText.text = $"Fullscreen: {(settings.IsFullscreen ? "ON" : "OFF")}";
+        }
+
+        private TextMeshProUGUI CreateText(Transform parent, string text, int size, Vector2 min, Vector2 max)
         {
             var go = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(_pausePanel.transform, false);
+            go.transform.SetParent(parent, false);
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = min;
             rt.anchorMax = max;
@@ -86,10 +174,10 @@ namespace SpaceMaintenance.UI
             return tmp;
         }
 
-        private void CreateButton(string text, Vector2 min, Vector2 max, UnityEngine.Events.UnityAction action)
+        private void CreateButton(Transform parent, string text, Vector2 min, Vector2 max, UnityEngine.Events.UnityAction action)
         {
             var go = new GameObject("Button", typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(_pausePanel.transform, false);
+            go.transform.SetParent(parent, false);
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = min;
             rt.anchorMax = max;
@@ -157,6 +245,7 @@ namespace SpaceMaintenance.UI
         {
             _isPaused = false;
             _pausePanel.SetActive(false);
+            if (_settingsPanel != null) _settingsPanel.SetActive(false);
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }

@@ -37,8 +37,9 @@ namespace SpaceMaintenance.Player
             if (_inputHandler == null || _config == null) return;
             if (Cursor.lockState != CursorLockMode.Locked) return;
 
-            float mouseX = _inputHandler.LookInput.x * _config.MouseSensitivity;
-            float mouseY = _inputHandler.LookInput.y * _config.MouseSensitivity;
+            float globalSens = SpaceMaintenance.Core.SettingsManager.Instance != null ? SpaceMaintenance.Core.SettingsManager.Instance.Sensitivity : 2f;
+            float mouseX = _inputHandler.LookInput.x * _config.MouseSensitivity * globalSens * 0.1f;
+            float mouseY = _inputHandler.LookInput.y * _config.MouseSensitivity * globalSens * 0.1f;
 
             _xRotation -= mouseY;
             _xRotation = Mathf.Clamp(_xRotation, -90f, 90f);
