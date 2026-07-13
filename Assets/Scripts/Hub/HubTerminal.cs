@@ -1,6 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using SpaceMaintenance.Core.Interfaces;
 using SpaceMaintenance.Core;
 
 namespace SpaceMaintenance.Hub
@@ -9,12 +8,18 @@ namespace SpaceMaintenance.Hub
     {
         private bool _isInteracting = false;
 
-        public string InteractPrompt => "Access Company Terminal";
-        public bool IsInteractable => true;
+        public string InteractionPrompt => "Press E to Access Terminal";
+        public bool RequiresHold => false;
+        public float HoldDuration => 0f;
+
+        public bool CanInteract(GameObject player)
+        {
+            return !_isInteracting;
+        }
 
         public void OnInteract(GameObject interactor)
         {
-            if (_isInteracting) return;
+            if (!CanInteract(interactor)) return;
             
             _isInteracting = true;
             if (ShopUI.Instance != null)
@@ -22,6 +27,9 @@ namespace SpaceMaintenance.Hub
                 ShopUI.Instance.OpenShop(this);
             }
         }
+
+        public void OnInteractHold(GameObject player, float holdTime) { }
+        public void OnInteractRelease(GameObject player) { }
 
         public void OnShopClosed()
         {
