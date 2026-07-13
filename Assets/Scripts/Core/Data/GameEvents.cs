@@ -18,6 +18,11 @@ namespace SpaceMaintenance.Core.Data
         public string SystemName;
     }
 
+    public struct SystemBrokenEvent
+    {
+        public string SystemName;
+    }
+
     public struct ChaosEventTriggered
     {
         public string EventName;

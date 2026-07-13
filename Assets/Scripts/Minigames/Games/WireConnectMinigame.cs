@@ -25,7 +25,6 @@ namespace SpaceMaintenance.Minigames.Games
 
         [Header("Visual")]
         [SerializeField] private RectTransform _wirePanel;  // Container for wire UI
-        [SerializeField] private float _wireSpacing = 60f;
 
         // ─── Wire Colors ────────────────────────────────────────────────
         private static readonly Color[] WireColors = new Color[]

@@ -21,7 +21,7 @@ namespace SpaceMaintenance.Missions
             else Instance = this;
 
             // Instantiate Mission UI for local client
-            if (FindObjectOfType<MissionResultUI>() == null)
+            if (FindFirstObjectByType<MissionResultUI>() == null)
             {
                 var uiPrefab = Resources.Load<GameObject>("MissionCanvas");
                 if (uiPrefab != null)

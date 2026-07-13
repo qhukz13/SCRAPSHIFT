@@ -307,7 +307,7 @@ namespace SpaceMaintenance.ShipSystems
         public void OnInteractHold(GameObject player, float holdTime) { }
         public void OnInteractRelease(GameObject player) { }
 
-        [Rpc(SendTo.Server, RequireOwnership = false)]
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void RequestInteractServerRpc()
         {
             HandleInteraction();

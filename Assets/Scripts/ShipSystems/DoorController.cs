@@ -44,7 +44,6 @@ namespace SpaceMaintenance.ShipSystems
 
         // ─── Server-only ────────────────────────────────────────────────
         private bool _isPowered = true;
-        private bool _previousPowerState = true;
 
         // ─── IPowered ───────────────────────────────────────────────────
         public float PowerConsumption => _config != null ? _config.DoorPowerConsumption : 10f;
