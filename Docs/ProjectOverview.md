@@ -17,4 +17,5 @@
 ## Technical Foundation (Implemented)
 - **Networked Multiplayer:** Cooperative gameplay using Unity Lobby and Netcode for GameObjects.
 - **Robust Player Mechanics:** 7-state player controller (including sprint, crouch, jump, air control) and physics-based grabbing.
-- **Modular Architecture:** Built heavily on interfaces (`IDamageable`, `IRepairable`) and decoupled systems (`ServiceLocator`, `EventBus`) for easy expansion of ship systems and minigames.
+- **Modular Architecture:** Built heavily on interfaces (`IDamageable`, `IMinigameRepairable`) and decoupled systems (`ServiceLocator`, `EventBus`) for easy expansion of ship systems and minigames.
+- **Core Game Loop:** Fully networked `MissionFlowController` (Dark Ship → Active), dynamic `TaskManager` with prioritized/timed tasks, and a scalable `MinigameManager` foundation.

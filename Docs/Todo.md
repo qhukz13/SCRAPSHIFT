@@ -6,12 +6,12 @@
 - [x] **Minigame Foundation:** Create a base interface/class for Repair Minigames to replace the current basic `IRepairable` hold-to-fix logic.
 
 ## Medium Priority
-- [ ] **Minigame Integration:** Wire `IMinigameRepairable` into `GeneratorController` so interacting opens WireConnect instead of hold-to-repair.
+- [x] **Minigame Integration:** Wire `IMinigameRepairable` into `GeneratorController` so interacting opens WireConnect instead of hold-to-repair.
 - [ ] **Task UI Prefab:** Build TaskEntryUI prefab in Unity Editor — priority icon, name text, timer text, background.
 - [ ] **Dark Ship UI:** Create DarkShipPrompt ("FIND THE REACTOR") and StartupPrompt ("REACTOR STARTING...") GameObjects and assign to MissionHUD.
 - [ ] **MissionFlowController Prefab:** Add MissionFlowController to the mission scene NetworkObject hierarchy.
 - [ ] **TaskManager Prefab:** Add TaskManager NetworkBehaviour to the mission scene.
-- [ ] **Base Hub & Economy:** Create a simple persistent "Bank" or economy manager to save money earned after a mission, and a basic Base Hub scene to transition to between shifts.
+- [x] **Base Hub & Economy:** Create a simple persistent "Bank" or economy manager to save money earned after a mission, and a basic Base Hub scene to transition to between shifts.
 - [ ] **Additional Minigames:** Implement PipeAlign, SequenceInput, PressureBalance, or CircuitTrace.
 
 ## Low Priority

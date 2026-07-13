@@ -87,13 +87,44 @@ namespace SpaceMaintenance.Missions
             _gameOverTriggered = true;
             RoundManager.Instance.EndRound();
 
-            Debug.Log($"<color={(won ? "green" : "red")}>{(won ? "VICTORY!" : "DEFEAT!")} {reason}</color>");
+            int payout = CalculatePayout();
+            if (EconomyManager.Instance != null && payout > 0)
+            {
+                EconomyManager.Instance.AddFunds(payout);
+            }
+
+            Debug.Log($"<color={(won ? "green" : "red")}>{(won ? "VICTORY!" : "DEFEAT!")} {reason} Payout: ${payout}</color>");
 
             EventBus.Publish(new GameOverEvent
             {
                 IsVictory = won,
                 Reason = reason
             });
+        }
+
+        private int CalculatePayout()
+        {
+            if (Tasks.TaskManager.Instance == null) return 0;
+
+            int totalPayout = 0;
+            var tasks = Tasks.TaskManager.Instance.ActiveTasks;
+
+            foreach (var task in tasks)
+            {
+                if (task.Status == TaskStatus.Completed)
+                {
+                    totalPayout += task.Priority switch
+                    {
+                        TaskPriority.Critical => 500,
+                        TaskPriority.High     => 300,
+                        TaskPriority.Medium   => 150,
+                        TaskPriority.Low      => 50,
+                        _                     => 0
+                    };
+                }
+            }
+
+            return totalPayout;
         }
     }
 }

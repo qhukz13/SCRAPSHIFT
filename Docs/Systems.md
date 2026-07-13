@@ -15,15 +15,16 @@ This document outlines the high-level systems that drive SCRAPSHIFT. *(Note: Thi
 - **Inventory System:** Basic framework for carrying and managing tools/items.
 
 ## 3. Ship Systems (Implemented Base)
-- **Power Management:** Routes power between Reactor, Generators, and endpoints (Doors, Lights). Will integrate with the new "Dark Ship" mission start logic.
+- **Power Management:** Routes power between Reactor, Generators, and endpoints (Doors, Lights).
 - **Reactor Controller:** Full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown).
 - **Generator & Door Controllers:** Implemented break/repair cycles and power grid integration.
-- **Repair System:** Uses `IRepairable` to track component health and progress (currently basic, to be expanded into minigames).
+- **Repair System (Minigames):** Uses `IMinigameRepairable` and `MinigameManager` to launch interactive minigames (e.g., WireConnect) for repairs, replacing the basic hold-to-fix mechanic.
 
-## 4. Mission & Task Systems
-- **Mission Manager:** Tracks overall objectives, win/lose conditions, and round state.
-- **Task System (Pending):** Will manage the dynamic list of Critical, High, Medium, and Low priority tasks, including timers.
-- **Chaos Manager:** Periodically injects random failure events (e.g., Door Lock, Power Drain) to keep players on their toes.
+## 4. Mission & Task Systems (Implemented)
+- **Mission Flow (Dark Ship):** `MissionFlowController` manages the mission phases (DarkShip → ReactorStartup → Active → Completed/Failed). Missions start unpowered, requiring players to find and start the Reactor.
+- **Task System:** `TaskManager` generates a dynamic list of tasks with priorities (Critical, High, Medium, Low). Critical tasks have strict timers that result in mission failure if ignored. Integrated with `TaskListUI`.
+- **Chaos Manager:** Periodically injects random failure events (e.g., Door Lock, Power Drain). Now phase-aware, activating only during the Active mission phase.
+- **Win/Lose Evaluation:** `WinLoseEvaluator` determines round state based on hull integrity and `TaskManager` events (Critical task failure or all tasks completed).
 
 ## 5. Network Systems
 - **Lobby Manager:** Handles Unity Relay and Lobby connections.

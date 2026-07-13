@@ -42,6 +42,12 @@ namespace SpaceMaintenance.Player
                             var repairable = targetNetObj.GetComponent<IRepairable>();
                             if (repairable != null && repairable.NeedsRepair)
                             {
+                                // Skip if this system uses minigames (it handles its own interaction via IInteractable)
+                                if (repairable is IMinigameRepairable)
+                                {
+                                    return;
+                                }
+
                                 CurrentRepairTarget = repairable;
                                 _currentTargetId = targetNetObj.NetworkObjectId;
                                 RequestStartRepairServerRpc(_currentTargetId);

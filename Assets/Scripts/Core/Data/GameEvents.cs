@@ -137,4 +137,15 @@ namespace SpaceMaintenance.Core.Data
         public string SystemName;
         public bool Success;
     }
+
+    // =========================================================================
+    // Economy events
+    // =========================================================================
+
+    /// <summary>Fired when the company funds change.</summary>
+    public struct FundsChangedEvent
+    {
+        public int OldAmount;
+        public int NewAmount;
+    }
 }
