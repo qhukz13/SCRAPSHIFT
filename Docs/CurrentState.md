@@ -37,5 +37,7 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
 - **Task UI Prefab:** Create the TaskEntryUI prefab in Unity Editor and wire up references.
 - **Dark Ship Prefab Setup:** Create DarkShipPrompt and StartupPrompt UI GameObjects, assign to MissionHUD.
 - **Additional Minigames:** PipeAlign, SequenceInput, PressureBalance, CircuitTrace.
+- **Wrench Model Fix:** The Wrench prefab model is bugged and falls through the map; needs to be fixed.
+- **Options Menu:** Add minimal basic functionality to the Settings/Options menu.
 - **Procedural Generation:** Currently non-existent. Levels are static.
 - **Progression & Base Hub:** No economy, upgrades, or base hub exist yet.

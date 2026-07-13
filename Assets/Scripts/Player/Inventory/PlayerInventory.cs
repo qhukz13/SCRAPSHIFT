@@ -61,6 +61,17 @@ namespace SpaceMaintenance.Player.Inventory
             return false;
         }
 
+        /// <summary>Check if the inventory contains at least one of the given item.</summary>
+        public bool HasItem(string itemID)
+        {
+            for (int i = 0; i < NetworkItems.Count; i++)
+            {
+                if (NetworkItems[i].ItemID.ToString() == itemID)
+                    return true;
+            }
+            return false;
+        }
+
         // Server-side method to remove an item
         public void RemoveItem(string itemID, int amount = 1)
         {

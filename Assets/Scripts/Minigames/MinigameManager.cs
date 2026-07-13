@@ -5,10 +5,13 @@
 // Space Overlay canvas, and handles player input lock during minigames.
 // ============================================================================
 
+using System.Collections;
 using System.Collections.Generic;
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Core.Data;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 namespace SpaceMaintenance.Minigames
 {
@@ -34,6 +37,7 @@ namespace SpaceMaintenance.Minigames
         private MinigameBase _activeMinigame;
         private IMinigameRepairable _activeTarget;
         private readonly Dictionary<MinigameType, MinigameBase> _instances = new Dictionary<MinigameType, MinigameBase>();
+        private bool _isShowingBlockedMessage;
 
         /// <summary>True while a minigame is active — used to block player input.</summary>
         public bool IsMinigameActive => _activeMinigame != null && _activeMinigame.IsActive;
@@ -70,7 +74,7 @@ namespace SpaceMaintenance.Minigames
         /// <summary>Request a minigame for the given IMinigameRepairable target.</summary>
         public void RequestMinigame(IMinigameRepairable target)
         {
-            if (IsMinigameActive)
+            if (IsMinigameActive || _isShowingBlockedMessage)
             {
                 Debug.LogWarning("[MinigameManager] Minigame already active, ignoring request.");
                 return;
@@ -119,6 +123,14 @@ namespace SpaceMaintenance.Minigames
 
             _activeMinigame.CancelMinigame();
             CleanupMinigame(false);
+        }
+
+        /// <summary>Show a temporary blocked message overlay (e.g. missing required item).</summary>
+        public void ShowBlockedMessage(string title, string description)
+        {
+            if (IsMinigameActive || _isShowingBlockedMessage) return;
+
+            StartCoroutine(ShowBlockedMessageCoroutine(title, description));
         }
 
         // =================================================================
@@ -203,6 +215,83 @@ namespace SpaceMaintenance.Minigames
             {
                 CloseMinigame();
             }
+        }
+
+        // =================================================================
+        //  BLOCKED MESSAGE OVERLAY
+        // =================================================================
+
+        private IEnumerator ShowBlockedMessageCoroutine(string title, string description)
+        {
+            _isShowingBlockedMessage = true;
+
+            // Show canvas
+            if (_minigameCanvas != null)
+                _minigameCanvas.gameObject.SetActive(true);
+
+            // Unlock cursor while message is showing
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            // Create overlay panel
+            var overlayGO = new GameObject("BlockedOverlay", typeof(RectTransform), typeof(Image));
+            overlayGO.transform.SetParent(_minigameCanvas.transform, false);
+
+            var overlayRT = overlayGO.GetComponent<RectTransform>();
+            overlayRT.anchorMin = Vector2.zero;
+            overlayRT.anchorMax = Vector2.one;
+            overlayRT.offsetMin = Vector2.zero;
+            overlayRT.offsetMax = Vector2.zero;
+
+            overlayGO.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
+
+            // Title text
+            var titleGO = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
+            titleGO.transform.SetParent(overlayGO.transform, false);
+
+            var titleRT = titleGO.GetComponent<RectTransform>();
+            titleRT.anchorMin = new Vector2(0.15f, 0.52f);
+            titleRT.anchorMax = new Vector2(0.85f, 0.68f);
+            titleRT.offsetMin = Vector2.zero;
+            titleRT.offsetMax = Vector2.zero;
+
+            var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
+            titleTMP.text = title;
+            titleTMP.fontSize = 48;
+            titleTMP.alignment = TextAlignmentOptions.Center;
+            titleTMP.color = new Color(1f, 0.3f, 0.3f); // Red
+            titleTMP.fontStyle = FontStyles.Bold;
+
+            // Description text
+            var descGO = new GameObject("Description", typeof(RectTransform), typeof(TextMeshProUGUI));
+            descGO.transform.SetParent(overlayGO.transform, false);
+
+            var descRT = descGO.GetComponent<RectTransform>();
+            descRT.anchorMin = new Vector2(0.2f, 0.35f);
+            descRT.anchorMax = new Vector2(0.8f, 0.52f);
+            descRT.offsetMin = Vector2.zero;
+            descRT.offsetMax = Vector2.zero;
+
+            var descTMP = descGO.GetComponent<TextMeshProUGUI>();
+            descTMP.text = description;
+            descTMP.fontSize = 24;
+            descTMP.alignment = TextAlignmentOptions.Center;
+            descTMP.color = new Color(0.8f, 0.8f, 0.8f);
+
+            // Wait 3 seconds
+            yield return new WaitForSecondsRealtime(3f);
+
+            // Cleanup
+            Destroy(overlayGO);
+
+            if (_minigameCanvas != null)
+                _minigameCanvas.gameObject.SetActive(false);
+
+            // Restore cursor
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            _isShowingBlockedMessage = false;
         }
     }
 }

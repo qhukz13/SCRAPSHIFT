@@ -85,8 +85,8 @@ namespace SpaceMaintenance.Chaos
 
         private void TriggerRandomEvent()
         {
-            // Weighted random — 5 event types
-            int eventType = Random.Range(0, 5);
+            // Weighted random — 6 event types
+            int eventType = Random.Range(0, 6);
             
             switch (eventType)
             {
@@ -104,6 +104,9 @@ namespace SpaceMaintenance.Chaos
                     break;
                 case 4:
                     TryPowerDrain();
+                    break;
+                case 5:
+                    TryPipeBurst();
                     break;
             }
         }
@@ -196,6 +199,24 @@ namespace SpaceMaintenance.Chaos
             // Power drain is instant, not a persistent disaster
         }
 
+        /// <summary>Burst a random healthy coolant pipe.</summary>
+        private void TryPipeBurst()
+        {
+            var pipes = FindObjectsByType<SpaceMaintenance.ShipSystems.PipeController>(FindObjectsSortMode.None);
+            foreach (var pipe in pipes)
+            {
+                if (!pipe.NeedsRepair)
+                {
+                    pipe.Break();
+                    _activeDisasters++;
+                    Debug.Log("[Chaos] Coolant pipe burst!");
+                    EventBus.Publish(new ChaosEventTriggered { EventName = "Pipe Burst" });
+                    NotifyChaosEventClientRpc("Pipe Burst");
+                    return;
+                }
+            }
+        }
+
         // =================================================================
         //  CLIENT NOTIFICATION
         // =================================================================
@@ -251,7 +272,8 @@ namespace SpaceMaintenance.Chaos
         {
             // Decrement active disasters for repairable events
             if (evt.SystemName == "Backup Generator" ||
-                evt.SystemName.Contains("Unjammed"))
+                evt.SystemName.Contains("Unjammed") ||
+                evt.SystemName == "Coolant Pipe")
             {
                 _activeDisasters = Mathf.Max(0, _activeDisasters - 1);
             }

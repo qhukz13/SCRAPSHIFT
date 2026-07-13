@@ -4,6 +4,7 @@
 // Generates a valid path programmatically, then scrambles the rotations.
 // ============================================================================
 
+using System.Collections;
 using System.Collections.Generic;
 using SpaceMaintenance.Core;
 using UnityEngine;
@@ -16,8 +17,8 @@ namespace SpaceMaintenance.Minigames.Games
     {
         // ─── Config ─────────────────────────────────────────────────────
         [Header("Pipe Align Settings")]
-        [SerializeField] private int _baseGridWidth = 4;
-        [SerializeField] private int _baseGridHeight = 4;
+        [SerializeField] private int _baseGridWidth = 3;
+        [SerializeField] private int _baseGridHeight = 3;
 
         [Header("Visual")]
         [SerializeField] private RectTransform _gridPanel;
@@ -71,11 +72,13 @@ namespace SpaceMaintenance.Minigames.Games
         private int _height;
         private PipeCell[,] _grid;
         private int _startY, _endY;
+        private bool _completed;
 
         private TextMeshProUGUI _timerDisplay;
         private TextMeshProUGUI _titleText;
         private RectTransform _startPortVisual;
         private RectTransform _endPortVisual;
+        private GameObject _completionOverlay;
 
         // =================================================================
         //  MINIGAME LIFECYCLE
@@ -88,10 +91,17 @@ namespace SpaceMaintenance.Minigames.Games
 
         protected override void OnStart()
         {
-            // Grid size scales with difficulty
-            _width = _baseGridWidth + (Difficulty > 2 ? 1 : 0);
-            _height = _baseGridHeight + (Difficulty > 1 ? 1 : 0);
-            _maxTime = Mathf.Lerp(25f, 15f, (Difficulty - 1) / 3f);
+            _completed = false;
+
+            // Grid size scales progressively with difficulty (ignore serialized values):
+            // Diff 1 => 3x3, Diff 2 => 3x3, Diff 3 => 4x3, Diff 4 => 4x4, Diff 5+ => 5x4
+            _width = 3 + Mathf.FloorToInt((Difficulty - 1) / 2f);
+            _height = 3 + Mathf.FloorToInt(Mathf.Max(0, Difficulty - 2) / 2f);
+            _width = Mathf.Clamp(_width, 3, 6);
+            _height = Mathf.Clamp(_height, 3, 5);
+
+            // Timer: generous at low difficulty, tighter as it scales
+            _maxTime = Mathf.Lerp(35f, 15f, (Difficulty - 1) / 5f);
 
             _startY = Random.Range(0, _height);
             _endY = Random.Range(0, _height);
@@ -104,11 +114,15 @@ namespace SpaceMaintenance.Minigames.Games
 
         protected override void OnCancel()
         {
+            StopAllCoroutines();
+            if (_completionOverlay != null) Destroy(_completionOverlay);
             ClearUI();
         }
 
         protected override void OnTick(float deltaTime)
         {
+            if (_completed) return; // Stop ticking during completion delay
+
             if (_timerDisplay != null)
             {
                 float remaining = _maxTime - _elapsedTime;
@@ -171,8 +185,9 @@ namespace SpaceMaintenance.Minigames.Games
                 if (i < path.Count - 1) dirs |= GetDirTo(path[i], path[i + 1]);
                 else dirs |= PipeDirs.Right; // End connects to right
 
-                // Add random extra connections sometimes to make it confusing
-                if (Random.value < 0.3f) dirs |= GetRandomDir();
+                // At higher difficulties, add random extra arms to confuse
+                float extraArmChance = Mathf.Clamp01((Difficulty - 2) * 0.15f);
+                if (Random.value < extraArmChance) dirs |= GetRandomDir();
 
                 _grid[path[i].x, path[i].y].BaseShape = dirs;
             }
@@ -276,11 +291,17 @@ namespace SpaceMaintenance.Minigames.Games
 
                     var rt = cellGO.GetComponent<RectTransform>();
                     rt.anchorMin = rt.anchorMax = Vector2.zero;
-                    rt.sizeDelta = new Vector2(cellSize - 4, cellSize - 4); // 2px margin
+                    float gap = 10f; // Visible gap between tiles
+                    rt.sizeDelta = new Vector2(cellSize - gap, cellSize - gap);
                     rt.anchoredPosition = new Vector2(startX + x * cellSize + cellSize / 2f, startY + y * cellSize + cellSize / 2f);
 
                     var img = cellGO.GetComponent<Image>();
-                    img.color = new Color(0.15f, 0.15f, 0.2f); // Dark tile background
+                    img.color = new Color(0.12f, 0.12f, 0.18f); // Dark tile background
+
+                    // Add a visible border/outline using an Outline component
+                    var outline = cellGO.AddComponent<Outline>();
+                    outline.effectColor = new Color(0.3f, 0.35f, 0.45f, 0.8f);
+                    outline.effectDistance = new Vector2(2, 2);
 
                     var btn = cellGO.GetComponent<Button>();
                     int cx = x, cy = y; // Capture for lambda
@@ -365,7 +386,7 @@ namespace SpaceMaintenance.Minigames.Games
 
         private void OnCellClicked(int x, int y)
         {
-            if (!IsActive) return;
+            if (!IsActive || _completed) return;
 
             var cell = _grid[x, y];
             cell.RotationCount = (cell.RotationCount + 1) % 4;
@@ -422,7 +443,8 @@ namespace SpaceMaintenance.Minigames.Games
             if (endCell.IsFilled && (endCell.CurrentDirs & PipeDirs.Right) != 0)
             {
                 _endPortVisual.GetComponent<Image>().color = _pipeFilledColor;
-                Complete(true);
+                _completed = true;
+                StartCoroutine(CompleteWithDelay());
             }
         }
 
@@ -452,6 +474,48 @@ namespace SpaceMaintenance.Minigames.Games
             {
                 if ((_grid[x - 1, y].CurrentDirs & PipeDirs.Right) != 0) FillCell(x - 1, y);
             }
+        }
+
+        // =================================================================
+        //  COMPLETION DELAY
+        // =================================================================
+
+        private IEnumerator CompleteWithDelay()
+        {
+            // Create dark overlay
+            _completionOverlay = new GameObject("CompletionOverlay", typeof(RectTransform), typeof(Image), typeof(CanvasRenderer));
+            _completionOverlay.transform.SetParent(_gridPanel, false);
+
+            var overlayRT = _completionOverlay.GetComponent<RectTransform>();
+            overlayRT.anchorMin = Vector2.zero;
+            overlayRT.anchorMax = Vector2.one;
+            overlayRT.offsetMin = Vector2.zero;
+            overlayRT.offsetMax = Vector2.zero;
+
+            var overlayImg = _completionOverlay.GetComponent<Image>();
+            overlayImg.color = new Color(0f, 0f, 0f, 0.6f); // Semi-transparent dark
+
+            // "PIPE FIXED!" text
+            var textGO = new GameObject("CompletionText", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textGO.transform.SetParent(_completionOverlay.transform, false);
+
+            var textRT = textGO.GetComponent<RectTransform>();
+            textRT.anchorMin = new Vector2(0.1f, 0.3f);
+            textRT.anchorMax = new Vector2(0.9f, 0.7f);
+            textRT.offsetMin = Vector2.zero;
+            textRT.offsetMax = Vector2.zero;
+
+            var tmp = textGO.GetComponent<TextMeshProUGUI>();
+            tmp.text = "PIPE FIXED!";
+            tmp.fontSize = 48;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = new Color(0.2f, 1f, 0.4f); // Bright green
+            tmp.fontStyle = FontStyles.Bold;
+
+            // Wait 2 seconds using unscaled time (in case game is paused)
+            yield return new WaitForSecondsRealtime(2f);
+
+            Complete(true);
         }
     }
 }

@@ -23,6 +23,7 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [ ] Procedural Generation V1 (Ship layout, room placement)
 - [ ] Procedural Generation V2 (Failures, task lists, difficulty scaling)
 - [ ] Additional Ship Systems (Pipes, Windows, Ship Controls)
+- [ ] Settings Menu Functionality (Audio, Video, Controls)
 
 ## Phase 4 — Early Access (Planned)
 - [ ] Expanded Minigame variety and difficulty tiers

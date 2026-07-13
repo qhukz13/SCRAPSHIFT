@@ -6,6 +6,7 @@
 
 using SpaceMaintenance.Core;
 using SpaceMaintenance.Core.Data;
+using SpaceMaintenance.Player.Inventory;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -30,9 +31,12 @@ namespace SpaceMaintenance.ShipSystems
 
         // IMinigameRepairable
         public SpaceMaintenance.Core.MinigameType MinigameType => SpaceMaintenance.Core.MinigameType.PipeAlign;
-        public int MinigameDifficulty => 1; // Can scale based on mission progress
+        public int MinigameDifficulty => 1 + _repairCount; // Gets harder each time
+
+        private int _repairCount = 0;
 
         // IInteractable
+        public const string REQUIRED_ITEM_ID = "wrench";
         public string InteractionPrompt => NeedsRepair ? "Press E to Align Pipes" : "Pipes OK";
         public bool RequiresHold => false;
         public float HoldDuration => 0f;
@@ -116,6 +120,7 @@ namespace SpaceMaintenance.ShipSystems
             IsBeingRepaired = false;
             NetworkNeedsRepair.Value = false;
             NetworkRepairProgress.Value = 1f;
+            _repairCount++;
             
             EventBus.Publish(new SpaceMaintenance.Core.Data.SystemRepairedEvent { SystemName = "Coolant Pipe" });
         }
@@ -131,10 +136,21 @@ namespace SpaceMaintenance.ShipSystems
 
         public void OnInteract(GameObject player)
         {
-            if (CanInteract(player))
+            if (!CanInteract(player)) return;
+
+            // Check if player has the wrench
+            var inventory = player.GetComponent<PlayerInventory>();
+            if (inventory == null || !inventory.HasItem(REQUIRED_ITEM_ID))
             {
-                SpaceMaintenance.Minigames.MinigameManager.Instance.RequestMinigame(this);
+                // Show blocked overlay
+                SpaceMaintenance.Minigames.MinigameManager.Instance.ShowBlockedMessage(
+                    "WRENCH REQUIRED",
+                    "Find and pick up a Wrench\nbefore repairing the pipes."
+                );
+                return;
             }
+
+            SpaceMaintenance.Minigames.MinigameManager.Instance.RequestMinigame(this);
         }
 
         public void OnInteractHold(GameObject player, float holdTime) { }

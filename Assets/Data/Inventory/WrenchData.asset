@@ -9,9 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3a8464a945be0a41b8729eba5f74610, type: 3}
-  m_Name: ItemDatabase
+  m_Script: {fileID: 11500000, guid: 054b2bc6a2f667a4d8ae8a795c118ba2, type: 3}
+  m_Name: WrenchData
   m_EditorClassIdentifier: 
-  Items:
-  - {fileID: 11400000, guid: e3e29dd2a5da64646b886a476f1d01d1, type: 2}
-  - {fileID: 11400000, guid: 449deacdcf18e3f4d8814878a898a325, type: 2}
+  ItemID: wrench
+  DisplayName: Wrench
+  Prefab: {fileID: 3533443497675532673, guid: ae0cd1fad9e5c45408dac12f58fe6339, type: 3}
+  Icon: {fileID: 0}
+  IsStackable: 0
+  MaxStack: 1
