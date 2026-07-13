@@ -17,9 +17,9 @@ namespace SpaceMaintenance.Hub
             return !_isInteracting;
         }
 
-        public void OnInteract(GameObject interactor)
+        public void OnInteract(GameObject player)
         {
-            if (!CanInteract(interactor)) return;
+            if (!CanInteract(player)) return;
             
             _isInteracting = true;
             if (ShopUI.Instance != null)
