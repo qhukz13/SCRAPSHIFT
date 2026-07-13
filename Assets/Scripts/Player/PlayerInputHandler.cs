@@ -16,6 +16,7 @@ namespace SpaceMaintenance.Player
         public bool SprintInput    { get; private set; }
         public bool CrouchInput    { get; private set; }
         public bool CrouchToggle   { get; private set; }
+        public bool FlashlightInput{ get; private set; }
 
         private bool _isCrouchedState;
 
@@ -27,6 +28,7 @@ namespace SpaceMaintenance.Player
         private InputAction _sprintAction;
         private InputAction _crouchAction;
         private InputAction _crouchToggleAction;
+        private InputAction _flashlightAction;
 
         private void Awake()
         {
@@ -53,8 +55,13 @@ namespace SpaceMaintenance.Player
             // C to toggle crouch
             _crouchToggleAction = new InputAction("CrouchToggle", binding: "<Keyboard>/c");
 
+            // F for flashlight
+            _flashlightAction = new InputAction("Flashlight", binding: "<Keyboard>/f");
+            _flashlightAction.AddBinding("<Gamepad>/dpad/up");
+
             _jumpAction.performed += ctx => JumpInput = true;
             _interactAction.performed += ctx => InteractInput = true;
+            _flashlightAction.performed += ctx => FlashlightInput = true;
             
             _crouchToggleAction.performed += ctx => 
             {
@@ -74,6 +81,7 @@ namespace SpaceMaintenance.Player
                 _sprintAction.Enable();
                 _crouchAction.Enable();
                 _crouchToggleAction.Enable();
+                _flashlightAction.Enable();
             }
         }
 
@@ -88,6 +96,7 @@ namespace SpaceMaintenance.Player
                 _sprintAction.Disable();
                 _crouchAction.Disable();
                 _crouchToggleAction.Disable();
+                _flashlightAction.Disable();
             }
         }
 
@@ -116,6 +125,7 @@ namespace SpaceMaintenance.Player
         // ─── Consume helpers ────────────────────────────────────────────
         public void ConsumeJumpInput()     => JumpInput = false;
         public void ConsumeInteractInput() => InteractInput = false;
+        public void ConsumeFlashlightInput() => FlashlightInput = false;
 
         /// <summary>Force-cancel crouch (e.g. when starting a sprint).</summary>
         public void CancelCrouch()

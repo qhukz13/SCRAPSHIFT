@@ -6,6 +6,7 @@
     "com.unity.ai.inference": "2.6.1",
     "com.unity.multiplayer.center": "1.0.0",
     "com.unity.multiplayer.center.quickstart": "1.1.2",
+    "com.unity.inputsystem": "1.7.0",
     "com.unity.netcode.gameobjects": "2.13.0",
     "com.unity.services.authentication": "3.3.1",
     "com.unity.services.core": "1.12.5",
