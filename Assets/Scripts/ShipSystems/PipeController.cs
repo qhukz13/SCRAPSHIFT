@@ -22,6 +22,12 @@ namespace SpaceMaintenance.ShipSystems
         public NetworkVariable<bool> NetworkNeedsRepair = new NetworkVariable<bool>(false);
         public bool NeedsRepair => NetworkNeedsRepair.Value;
 
+        // IRepairable (Legacy / interface requirement)
+        public float RepairTime => 5f;
+        public NetworkVariable<float> NetworkRepairProgress = new NetworkVariable<float>(0f);
+        public float RepairProgress => NetworkRepairProgress.Value;
+        public bool IsBeingRepaired { get; private set; }
+
         // IMinigameRepairable
         public SpaceMaintenance.Core.MinigameType MinigameType => SpaceMaintenance.Core.MinigameType.PipeAlign;
         public int MinigameDifficulty => 1; // Can scale based on mission progress
@@ -70,9 +76,34 @@ namespace SpaceMaintenance.ShipSystems
         {
             if (!IsServer || NeedsRepair) return;
             NetworkNeedsRepair.Value = true;
+            NetworkRepairProgress.Value = 0f;
+            IsBeingRepaired = false;
             
             // Here we could notify the event bus about a broken system
             EventBus.Publish(new SpaceMaintenance.Core.Data.SystemBrokenEvent { SystemName = "Coolant Pipe" });
+        }
+
+        public void StartRepair(GameObject repairer)
+        {
+            if (!IsServer || !NeedsRepair) return;
+            IsBeingRepaired = true;
+        }
+
+        public void UpdateRepair(float deltaTime)
+        {
+            if (!IsServer || !IsBeingRepaired || !NeedsRepair) return;
+            
+            NetworkRepairProgress.Value += deltaTime / RepairTime;
+            if (NetworkRepairProgress.Value >= 1f)
+            {
+                CompleteRepair();
+            }
+        }
+
+        public void CancelRepair()
+        {
+            if (!IsServer) return;
+            IsBeingRepaired = false;
         }
 
         /// <summary>
@@ -81,7 +112,10 @@ namespace SpaceMaintenance.ShipSystems
         public void CompleteRepair()
         {
             if (!IsServer || !NeedsRepair) return;
+            
+            IsBeingRepaired = false;
             NetworkNeedsRepair.Value = false;
+            NetworkRepairProgress.Value = 1f;
             
             EventBus.Publish(new SpaceMaintenance.Core.Data.SystemRepairedEvent { SystemName = "Coolant Pipe" });
         }
@@ -123,7 +157,7 @@ namespace SpaceMaintenance.ShipSystems
             }
         }
 
-        [ServerRpc(RequireOwnership = false)]
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void CompleteRepairServerRpc()
         {
             CompleteRepair();

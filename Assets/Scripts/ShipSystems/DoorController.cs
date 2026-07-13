@@ -214,14 +214,14 @@ namespace SpaceMaintenance.ShipSystems
 
         public void OnInteractRelease(GameObject player) { }
 
-        [Rpc(SendTo.Server, RequireOwnership = false)]
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void RequestToggleDoorServerRpc()
         {
             if (CanInteract(null) && !RequiresHold)
                 ToggleDoor();
         }
 
-        [Rpc(SendTo.Server, RequireOwnership = false)]
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void RequestHoldCompleteServerRpc()
         {
             HandleHoldComplete();
