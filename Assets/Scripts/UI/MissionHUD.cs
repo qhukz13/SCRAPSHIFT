@@ -47,6 +47,62 @@ namespace SpaceMaintenance.UI
         private bool _isGameOver = false;
         private MissionPhase _currentPhase = MissionPhase.DarkShip;
 
+        private void Awake()
+        {
+            BuildPromptsIfMissing();
+        }
+
+        private void BuildPromptsIfMissing()
+        {
+            if (_darkShipPrompt == null)
+            {
+                var go = new GameObject("DarkShipPrompt", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(transform, false);
+                var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                go.GetComponent<Image>().color = new Color(0, 0, 0, 0.8f);
+
+                var txtGo = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+                txtGo.transform.SetParent(go.transform, false);
+                var txtRt = txtGo.GetComponent<RectTransform>();
+                txtRt.anchorMin = Vector2.zero; txtRt.anchorMax = Vector2.one;
+                txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
+                
+                var tmp = txtGo.GetComponent<TextMeshProUGUI>();
+                tmp.text = "FIND AND START THE REACTOR";
+                tmp.fontSize = 48;
+                tmp.color = Color.red;
+                tmp.alignment = TextAlignmentOptions.Center;
+
+                _darkShipPrompt = go;
+            }
+
+            if (_startupPrompt == null)
+            {
+                var go = new GameObject("StartupPrompt", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(transform, false);
+                var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = new Vector2(0.2f, 0.8f); rt.anchorMax = new Vector2(0.8f, 0.95f);
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                go.GetComponent<Image>().color = new Color(0.2f, 0, 0, 0.6f);
+
+                var txtGo = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+                txtGo.transform.SetParent(go.transform, false);
+                var txtRt = txtGo.GetComponent<RectTransform>();
+                txtRt.anchorMin = Vector2.zero; txtRt.anchorMax = Vector2.one;
+                txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
+                
+                var tmp = txtGo.GetComponent<TextMeshProUGUI>();
+                tmp.text = "REACTOR STARTING...";
+                tmp.fontSize = 36;
+                tmp.color = Color.yellow;
+                tmp.alignment = TextAlignmentOptions.Center;
+
+                _startupPrompt = go;
+            }
+        }
+
         private void OnEnable()
         {
             EventBus.Subscribe<MissionTimerUpdatedEvent>(OnTimerUpdated);

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added — Procedural Generation & Minigames
+- **ShipBlockoutGenerator:** Added a Subtractive BSP generator to instantly create dense, multi-room ship layouts (walls, floors, corridors, reactor room). Can be run in editor via ContextMenu.
+- **PipeAlignMinigame:** Added a new repair minigame where the player must click to rotate pipe segments on a grid to restore flow.
 ### Added — Dark Ship Mission Flow
 - **MissionFlowController:** New `NetworkBehaviour` managing mission phases (`DarkShip → ReactorStartup → Active → Completed/Failed`). Listens to `ReactorStateChangedEvent` to drive transitions.
 - **MissionPhaseChangedEvent:** New event published on every phase transition for HUD, Chaos, and other systems to react.

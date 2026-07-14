@@ -13,6 +13,8 @@ namespace SpaceMaintenance.Hub
         private GameObject _uiPanel;
         private MissionLaunchConsole _console;
 
+        public bool IsOpen => _uiPanel != null && _uiPanel.activeSelf;
+
         private Transform _playersContainer;
         private TextMeshProUGUI _readyStatusText;
         private Button _startBtn;
@@ -245,7 +247,7 @@ namespace SpaceMaintenance.Hub
         {
             if (!_uiPanel.activeSelf || _console == null) return;
 
-            if (Input.GetKeyDown(KeyCode.Escape)) CloseUI();
+            if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame) CloseUI();
             
             RefreshData();
             UpdatePlayerSlots();

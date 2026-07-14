@@ -213,10 +213,14 @@ namespace SpaceMaintenance.UI
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 // Prevent pause menu in MainMenu scene
                 if (SceneManager.GetActiveScene().name == "MainMenu") return;
+                
+                // Prevent pause if Hub UI is active
+                if (SpaceMaintenance.Hub.ShopUI.Instance != null && SpaceMaintenance.Hub.ShopUI.Instance.IsOpen) return;
+                if (SpaceMaintenance.Hub.MissionSetupUI.Instance != null && SpaceMaintenance.Hub.MissionSetupUI.Instance.IsOpen) return;
 
                 // Don't pause if minigame is active
                 if (SpaceMaintenance.Minigames.MinigameManager.Instance != null && 

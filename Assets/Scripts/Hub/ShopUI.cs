@@ -12,6 +12,8 @@ namespace SpaceMaintenance.Hub
         private GameObject _shopPanel;
         private TextMeshProUGUI _fundsText;
         private HubTerminal _currentTerminal;
+        
+        public bool IsOpen => _shopPanel != null && _shopPanel.activeSelf;
 
         private void Awake()
         {
@@ -215,7 +217,7 @@ namespace SpaceMaintenance.Hub
                 _fundsText.text = $"FUNDS: ${EconomyManager.Instance.CompanyFunds.Value}";
             }
 
-            if (_shopPanel.activeSelf && Input.GetKeyDown(KeyCode.Escape))
+            if (_shopPanel.activeSelf && UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 CloseShop();
             }

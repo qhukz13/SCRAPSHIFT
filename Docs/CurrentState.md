@@ -11,7 +11,7 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
   - **Reactor Controller:** Full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown), SCRAM emergency shutdown.
   - **Door Controller:** State machine (Open / Closed / Locked / Broken), `IPowered` integration (auto-open on power loss), lock bypass.
   - **Power Manager:** Priority-based power distribution, shutting down low-priority systems when power drops.
-  - **Generator Controller:** Break/repair cycle integrated with the power grid.
+  - **Generator Controller:** Break/repair cycle integrated with the power grid. Now uses `IMinigameRepairable` for minigame-based repair (WireConnect).
 - **Chaos System:** Framework capable of injecting events (Generator Break, Door Jam, Door Lock, Reactor Surge, Power Drain). Now **phase-aware** — only fires during Active mission phase with configurable start delay.
 - **Game Loop Base:** `MissionManager`, `WinLoseEvaluator`, `RoundManager`, Mission UI (HUD, Result Screens).
 - **Dark Ship Flow (`MissionFlowController`):**
@@ -31,14 +31,25 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
   - `MinigameBase` abstract class with lifecycle management, time limits, and events.
   - `MinigameManager` singleton managing Screen Space Overlay canvas.
   - **WireConnectMinigame** — first minigame (connect colored wires to matching sockets).
+  - **PipeAlignMinigame** — second minigame (rotate pipes to restore flow).
+- **Procedural Generation:** Added `ShipBlockoutGenerator` that uses Subtractive BSP to generate dense, multi-room ship layouts instantly.
+
+## Done
+- [x] Integrate minigame UI prefab (WireConnect) into `Generator` and implement `IMinigameRepairable`.
+- [x] Fix Wrench interaction physics.
+- [x] Stabilize interactions in Hub and prevent UI freeze/close bugs (fixed Escape key conflict in `ShopUI`, `MissionSetupUI`, `PauseMenu`).
+- [x] Create UI prefabs (dynamically generated in `MissionHUD.cs` and `TaskListUI.cs` for robustness).
+- [x] Options Menu minimal basic functionality (Validated in `PauseMenu.cs`).
+- [x] ShipBlockoutGenerator (Subtractive BSP room/corridor generation).
+- [x] PipeAlignMinigame.
 
 ## In Development / Next Steps
 - **3D Models:** Find and import 3D models for the Reactor, Generator, Door, Hub Terminal, and Hub Shop into the Models folder (must be provided externally, AI cannot create models).
-- **Minigame Integration:** Wire `IMinigameRepairable` into `GeneratorController` to replace hold-to-repair.
-- **Task UI Prefab:** Create the TaskEntryUI prefab in Unity Editor and wire up references.
-- **Dark Ship Prefab Setup:** Create DarkShipPrompt and StartupPrompt UI GameObjects, assign to MissionHUD.
-- **Additional Minigames:** PipeAlign, SequenceInput, PressureBalance, CircuitTrace.
-- **Wrench Model Fix:** The Wrench prefab model is bugged and falls through the map; needs to be fixed.
-- **Options Menu:** Add minimal basic functionality to the Settings/Options menu.
-- **Procedural Generation:** Currently non-existent. Levels are static.
+- **UI Polish:** 
+  - Add end-of-mission summary screens.
+  - Implement dynamic mission briefing generation.
+- **Networking:**
+  - Create network spawner for mission items.
+  - Handle player disconnect during active missions gracefully.
+- **Additional Minigames:** SequenceInput, PressureBalance, CircuitTrace.
 - **Progression & Base Hub:** No economy, upgrades, or base hub exist yet.

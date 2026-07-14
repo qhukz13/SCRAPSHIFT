@@ -44,6 +44,28 @@ namespace SpaceMaintenance.Tasks.UI
         //  SETUP
         // =================================================================
 
+        private void Awake()
+        {
+            if (_backgroundImage == null) _backgroundImage = GetComponent<Image>();
+            if (_canvasGroup == null) _canvasGroup = GetComponent<CanvasGroup>();
+            
+            if (_priorityIcon == null) 
+            {
+                var t = transform.Find("PriorityIcon");
+                if (t != null) _priorityIcon = t.GetComponent<Image>();
+            }
+            if (_taskNameText == null) 
+            {
+                var t = transform.Find("TaskNameText");
+                if (t != null) _taskNameText = t.GetComponent<TextMeshProUGUI>();
+            }
+            if (_timerText == null) 
+            {
+                var t = transform.Find("TimerText");
+                if (t != null) _timerText = t.GetComponent<TextMeshProUGUI>();
+            }
+        }
+
         /// <summary>Initialize this entry with task data.</summary>
         public void Setup(string taskId, string displayName, TaskPriority priority, float timeLimit)
         {
