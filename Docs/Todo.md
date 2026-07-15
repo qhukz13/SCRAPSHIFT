@@ -4,6 +4,8 @@
 - [x] **Mission Start Flow:** Update `MissionManager` and `ReactorController` so the ship starts completely unpowered (Dark Ship). Hide task UI and disable doors until the Reactor is manually started.
 - [x] **Task System Framework:** Build the new `TaskManager` to generate Critical, High, Medium, and Low priority tasks. Add timer support for Critical tasks resulting in mission failure.
 - [x] **Minigame Foundation:** Create a base interface/class for Repair Minigames to replace the current basic `IRepairable` hold-to-fix logic.
+- [ ] **Procedural Generation (Prefabs):** Implement ship generation using pre-configured room prefabs (Reactor Room, Generator Room, Corridors) instead of primitive blockouts.
+- [ ] **Door Functionality:** Setup actual door logic and interactions, replacing the current dummy door implementation.
 
 ## Medium Priority
 - [x] **Minigame Integration:** Wire `IMinigameRepairable` into `GeneratorController` so interacting opens WireConnect instead of hold-to-repair.

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxReactorPower: 1000
   GeneratorPowerOutput: 200
-  ReactorHeatRate: 0.015
+  ReactorHeatRate: 0.002
   ReactorHeatWarningThreshold: 0.5
   ReactorHeatCriticalThreshold: 0.8
   ReactorCooldownRate: 0.2

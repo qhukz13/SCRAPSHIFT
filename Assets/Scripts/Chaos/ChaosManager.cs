@@ -232,6 +232,12 @@ namespace SpaceMaintenance.Chaos
         //  ACTIVATION (called by MissionFlowController)
         // =================================================================
 
+        public void InitializeShipSystems()
+        {
+            // Cache systems if needed in the future, right now they are found dynamically
+            Debug.Log("[ChaosManager] Ship systems initialized.");
+        }
+
         /// <summary>Enable chaos events. Called when the mission enters Active phase.</summary>
         public void Activate()
         {

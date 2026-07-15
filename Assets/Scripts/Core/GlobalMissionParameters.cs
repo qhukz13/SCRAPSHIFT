@@ -6,5 +6,7 @@ namespace SpaceMaintenance.Core
         public static GameMode Mode;
         public static float Duration;
         public static int Quota;
+        
+        public static int MissionsCompleted = 0;
     }
 }

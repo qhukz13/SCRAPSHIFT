@@ -8,6 +8,11 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [x] Basic Physics Grab & Interaction System
 - [x] Foundational Win/Lose logic
 
+## Current High Priority
+- [ ] **Fix Player Spawning:** Players are still occasionally spawning outside the generated ship layout. (Needs investigation into teleport timing or Room_Spawn bounds).
+- [ ] **Ship Generation Layout Overhaul:** Refactor the generator to create a linear/predictable ship structure (e.g., spawn room on the far left, reactor in the center) with placeholder rooms, instead of a massive randomized labyrinth.
+- [ ] **Pipe Generation:** Generate interactive pipes properly on walls and connect them visually.
+
 ## Phase 2 — Core Gameplay (In Progress)
 - [x] Player Movement overhaul (Sprint, Crouch, Jump, Air control)
 - [x] Basic Inventory
@@ -16,16 +21,21 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [x] Implement "Dark Ship" start logic (Reactor initialization turns on UI/Tasks)
 - [x] Implement robust Task System (Priorities, Timers)
 - [x] First iteration of Repair Minigames (replacing basic hold-to-repair)
+- [x] Fix GameManager network spawn issues (Removed DontDestroyOnLoad from EconomyManager to fix HUD and mission flow).
+- [x] Fix Reactor interaction input sticking (Consumed InteractInput properly).
 
 ## Phase 3 — Vertical Slice (Planned)
+- [ ] Implement Prefab-based Procedural Generation (Ship layout built from configured room prefabs: Reactor Room, Generator Room, Corridors, etc.).
+- [ ] Overhaul Door Functionality (setup actual door logic and interactions, replacing the current dummy implementation).
 - [ ] Find and import 3D Models for Reactor, Generator, Door, Hub Terminal, and Hub Shop. (Models must be created externally and placed in the models folder; AI does not create 3D models).
 - [ ] Base Hub environment for between-mission progression
 - [ ] Upgrade the default Hub scene layout with proper models and structure
 - [ ] Economic loop: Earn money -> Buy upgrades -> Next Shift
-- [ ] Procedural Generation V1 (Ship layout, room placement)
 - [ ] Procedural Generation V2 (Failures, task lists, difficulty scaling)
 - [ ] Additional Ship Systems (Pipes, Windows, Ship Controls)
+- [ ] Implement Pipe Minigame Difficulty Scaling (1: 3x3 simple, 2: less time, 3: larger size, 4: even less time, etc.)
 - [ ] Settings Menu Functionality (Audio, Video, Controls)
+- [ ] Expand Procedural Generation with new types of rooms
 
 ## Phase 4 — Early Access (Planned)
 - [ ] Expanded Minigame variety and difficulty tiers

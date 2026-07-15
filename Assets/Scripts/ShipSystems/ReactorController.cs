@@ -113,7 +113,7 @@ namespace SpaceMaintenance.ShipSystems
 
         private void Update()
         {
-            if (!IsServer || _config == null) return;
+            if (!IsServer) return;
 
             switch (State.Value)
             {
@@ -155,7 +155,7 @@ namespace SpaceMaintenance.ShipSystems
             {
                 // Add power to the grid
                 if (PowerManager.Instance != null)
-                    PowerManager.Instance.AddPower(_config.MaxReactorPower);
+                    PowerManager.Instance.AddPower(_config != null ? _config.MaxReactorPower : 1000f);
 
                 TransitionTo(ReactorState.Running);
             }
@@ -166,7 +166,7 @@ namespace SpaceMaintenance.ShipSystems
             // Heat rises unless actively being repaired
             if (!IsBeingRepaired)
             {
-                float rate = _config.ReactorHeatRate;
+                float rate = _config != null ? _config.ReactorHeatRate : 0.05f;
 
                 // Overheating and Critical heat up faster
                 if (State.Value == ReactorState.Overheating)
@@ -177,23 +177,26 @@ namespace SpaceMaintenance.ShipSystems
                 HeatLevel.Value = Mathf.Min(1f, HeatLevel.Value + rate * Time.deltaTime);
             }
 
+            float critThreshold = _config != null ? _config.ReactorHeatCriticalThreshold : 0.8f;
+            float warnThreshold = _config != null ? _config.ReactorHeatWarningThreshold : 0.5f;
+
             // Check thresholds
             if (HeatLevel.Value >= 1f)
             {
                 TriggerMeltdown();
             }
-            else if (HeatLevel.Value >= _config.ReactorHeatCriticalThreshold &&
+            else if (HeatLevel.Value >= critThreshold &&
                      State.Value != ReactorState.Critical)
             {
                 TransitionTo(ReactorState.Critical);
             }
-            else if (HeatLevel.Value >= _config.ReactorHeatWarningThreshold &&
-                     HeatLevel.Value < _config.ReactorHeatCriticalThreshold &&
+            else if (HeatLevel.Value >= warnThreshold &&
+                     HeatLevel.Value < critThreshold &&
                      State.Value != ReactorState.Overheating)
             {
                 TransitionTo(ReactorState.Overheating);
             }
-            else if (HeatLevel.Value < _config.ReactorHeatWarningThreshold &&
+            else if (HeatLevel.Value < warnThreshold &&
                      State.Value != ReactorState.Running)
             {
                 TransitionTo(ReactorState.Running);
@@ -223,10 +226,10 @@ namespace SpaceMaintenance.ShipSystems
 
             // Remove power from grid
             if (PowerManager.Instance != null)
-                PowerManager.Instance.ConsumePower(_config.MaxReactorPower);
+                PowerManager.Instance.ConsumePower(_config != null ? _config.MaxReactorPower : 1000f);
 
             _scramCooldownActive = true;
-            _scramCooldownTimer  = _config.ReactorScramCooldownTime;
+            _scramCooldownTimer  = _config != null ? _config.ReactorScramCooldownTime : 10f;
 
             TransitionTo(ReactorState.Offline);
             Debug.Log("[Reactor] Emergency SCRAM executed!");
@@ -237,7 +240,7 @@ namespace SpaceMaintenance.ShipSystems
         {
             if (!IsServer || _scramCooldownActive) return;
 
-            _startupTimer = _config.ReactorStartupTime;
+            _startupTimer = _config != null ? _config.ReactorStartupTime : 5f;
             TransitionTo(ReactorState.Starting);
             Debug.Log("[Reactor] Starting up…");
         }
@@ -249,12 +252,12 @@ namespace SpaceMaintenance.ShipSystems
 
             // Remove power from grid
             if (PowerManager.Instance != null)
-                PowerManager.Instance.ConsumePower(_config.MaxReactorPower);
+                PowerManager.Instance.ConsumePower(_config != null ? _config.MaxReactorPower : 1000f);
 
             EventBus.Publish(new ChaosEventTriggered { EventName = "Reactor Meltdown" });
 
             if (Damage.DamageManager.Instance != null)
-                Damage.DamageManager.Instance.TakeDamage(_config.ReactorMeltdownDamage);
+                Damage.DamageManager.Instance.TakeDamage(_config != null ? _config.ReactorMeltdownDamage : 100f);
 
             Debug.Log("[Reactor] *** MELTDOWN ***");
         }
@@ -315,6 +318,7 @@ namespace SpaceMaintenance.ShipSystems
 
         private void HandleInteraction()
         {
+            Debug.Log($"[ReactorController] HandleInteraction called. Current State: {State.Value}, IsServer: {IsServer}");
             if (State.Value == ReactorState.Offline && !_scramCooldownActive)
             {
                 StartReactor();

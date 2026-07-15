@@ -31,7 +31,7 @@ namespace SpaceMaintenance.ShipSystems
 
         // IMinigameRepairable
         public SpaceMaintenance.Core.MinigameType MinigameType => SpaceMaintenance.Core.MinigameType.PipeAlign;
-        public int MinigameDifficulty => 1 + _repairCount; // Gets harder each time
+        public int MinigameDifficulty => 1 + _repairCount + SpaceMaintenance.Core.GlobalMissionParameters.MissionsCompleted; // Gets harder each time AND each mission
 
         private int _repairCount = 0;
 

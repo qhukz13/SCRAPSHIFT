@@ -44,6 +44,8 @@ namespace SpaceMaintenance.Missions
 
         public override void OnNetworkSpawn()
         {
+            Debug.Log($"[MissionFlow] OnNetworkSpawn called! IsServer: {IsServer}, StartDark: {_config != null && _config.StartDark}");
+
             // All clients listen for phase changes
             CurrentPhase.OnValueChanged += OnPhaseChangedCallback;
 
@@ -59,17 +61,20 @@ namespace SpaceMaintenance.Missions
                 bool startDark = _config != null && _config.StartDark;
                 if (startDark)
                 {
+                    Debug.Log($"[MissionFlow] startDark is true, calling TransitionTo(DarkShip)");
                     TransitionTo(MissionPhase.DarkShip);
                 }
                 else
                 {
                     // Skip dark ship — go straight to active
+                    Debug.Log($"[MissionFlow] startDark is false, calling TransitionTo(Active)");
                     TransitionTo(MissionPhase.Active);
                     ActivateMission();
                 }
             }
 
             // Fire initial phase for late joiners
+            Debug.Log($"[MissionFlow] Firing initial phase callback: {CurrentPhase.Value}");
             OnPhaseChangedCallback(CurrentPhase.Value, CurrentPhase.Value);
         }
 
@@ -110,6 +115,7 @@ namespace SpaceMaintenance.Missions
 
         private void OnReactorStateChanged(ReactorStateChangedEvent evt)
         {
+            Debug.Log($"[MissionFlow] OnReactorStateChanged! IsServer: {IsServer}, CurrentPhase: {CurrentPhase.Value}, NewState: {evt.NewState}");
             if (!IsServer) return;
 
             switch (CurrentPhase.Value)
@@ -118,6 +124,7 @@ namespace SpaceMaintenance.Missions
                     // Player started the reactor → transition to Startup
                     if (evt.NewState == ReactorState.Starting)
                     {
+                        Debug.Log($"[MissionFlow] Transitioning to ReactorStartup!");
                         TransitionTo(MissionPhase.ReactorStartup);
                     }
                     break;

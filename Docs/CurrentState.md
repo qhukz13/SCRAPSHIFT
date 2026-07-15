@@ -44,6 +44,8 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
 - [x] PipeAlignMinigame.
 
 ## In Development / Next Steps
+- **Procedural Generation (Prefabs):** Transition ship generation from primitive blockouts to using pre-configured room prefabs (e.g., large Reactor room, Generator room).
+- **Door Functionality:** Setup proper door logic, interactions, and networking, replacing the placeholder implementation.
 - **3D Models:** Find and import 3D models for the Reactor, Generator, Door, Hub Terminal, and Hub Shop into the Models folder (must be provided externally, AI cannot create models).
 - **UI Polish:** 
   - Add end-of-mission summary screens.

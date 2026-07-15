@@ -22,7 +22,7 @@ namespace SpaceMaintenance.ShipSystems
 
         // IMinigameRepairable
         public SpaceMaintenance.Core.MinigameType MinigameType => SpaceMaintenance.Core.MinigameType.WireConnect;
-        public int MinigameDifficulty => 1; // Can be scaled later
+        public int MinigameDifficulty => 1 + SpaceMaintenance.Core.GlobalMissionParameters.MissionsCompleted; // Scales with subsequent missions
 
         // IInteractable
         public string InteractionPrompt => NeedsRepair ? "Press E to Repair (Minigame)" : "Generator Online";

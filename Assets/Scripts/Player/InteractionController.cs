@@ -23,11 +23,13 @@ namespace SpaceMaintenance.Player
         {
             if (!IsOwner) return;
 
-            if (_input.InteractInput && _detector != null && _detector.CurrentInteractable != null)
+            if (_input.InteractInput)
             {
-                // Note: If interaction needs to be server authoritative, we should use ServerRpc here.
-                // For now, we call the interaction logic.
-                _detector.CurrentInteractable.OnInteract(gameObject);
+                if (_detector != null && _detector.CurrentInteractable != null)
+                {
+                    _detector.CurrentInteractable.OnInteract(gameObject);
+                }
+                // Always consume the input to prevent it from sticking
                 _input.ConsumeInteractInput();
             }
         }

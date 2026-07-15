@@ -11,7 +11,7 @@ namespace SpaceMaintenance.ShipSystems
 
         [Header("Reactor — Heat")]
         [Tooltip("Heat gain per second during normal operation.")]
-        public float ReactorHeatRate = 0.015f;
+        public float ReactorHeatRate = 0.002f;
 
         [Tooltip("Heat percentage (0–1) that triggers Overheating state.")]
         [Range(0.3f, 0.7f)]

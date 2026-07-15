@@ -68,6 +68,7 @@ namespace SpaceMaintenance.UI
             CreateButton(_pausePanel.transform, "Resume Game", new Vector2(0.35f, 0.5f), new Vector2(0.65f, 0.6f), Resume);
             CreateButton(_pausePanel.transform, "Settings", new Vector2(0.35f, 0.35f), new Vector2(0.65f, 0.45f), OpenSettings);
             CreateButton(_pausePanel.transform, "Main Menu", new Vector2(0.35f, 0.2f), new Vector2(0.65f, 0.3f), GoToMainMenu);
+            CreateButton(_pausePanel.transform, "Debug: Win (Complete Tasks)", new Vector2(0.3f, 0.05f), new Vector2(0.7f, 0.15f), DebugCompleteTasks);
 
             _pausePanel.SetActive(false);
 
@@ -259,6 +260,15 @@ namespace SpaceMaintenance.UI
             if (_settingsPanel != null) _settingsPanel.SetActive(false);
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+        }
+
+        private void DebugCompleteTasks()
+        {
+            if (SpaceMaintenance.Tasks.TaskManager.Instance != null)
+            {
+                SpaceMaintenance.Tasks.TaskManager.Instance.DebugCompleteAllTasks();
+            }
+            Resume();
         }
 
         private void GoToMainMenu()

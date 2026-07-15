@@ -81,8 +81,8 @@ namespace SpaceMaintenance.Minigames.Games
             _isDragging = false;
             _dragSourceIndex = -1;
 
-            // Set time limit based on difficulty
-            _maxTime = Mathf.Lerp(15f, 10f, (Difficulty - 1) / 3f);
+            // Set time limit based on difficulty (shrinks down to 5 seconds max)
+            _maxTime = Mathf.Max(5f, 15f - (Difficulty - 1) * 2f);
 
             // Setup mapping
             SetupMapping();

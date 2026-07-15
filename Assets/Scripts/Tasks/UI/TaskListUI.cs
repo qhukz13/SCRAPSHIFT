@@ -26,6 +26,8 @@ namespace SpaceMaintenance.Tasks.UI
         // ─── Runtime ────────────────────────────────────────────────────
         private readonly Dictionary<string, TaskEntryUI> _entries = new Dictionary<string, TaskEntryUI>();
         private MissionPhase _currentPhase = MissionPhase.DarkShip;
+        private SpaceMaintenance.ShipSystems.ReactorController _reactor;
+        private TextMeshProUGUI _reactorHeatText;
 
         // =================================================================
         //  LIFECYCLE
@@ -70,6 +72,32 @@ namespace SpaceMaintenance.Tasks.UI
 
                 _taskEntryPrefab = go;
             }
+
+            if (_reactorHeatText == null)
+            {
+                var rGo = new GameObject("ReactorHeatText", typeof(RectTransform), typeof(TextMeshProUGUI));
+                rGo.transform.SetParent(transform, false);
+                var rRt = rGo.GetComponent<RectTransform>();
+                rRt.anchorMin = new Vector2(0, 1); rRt.anchorMax = new Vector2(1, 1);
+                rRt.pivot = new Vector2(0.5f, 1);
+                rRt.sizeDelta = new Vector2(0, 30);
+                
+                // Position just above the task list or below header
+                if (_headerText != null)
+                {
+                    var headerRt = _headerText.GetComponent<RectTransform>();
+                    rRt.anchoredPosition = new Vector2(0, headerRt.anchoredPosition.y - headerRt.sizeDelta.y - 10);
+                }
+                else
+                {
+                    rRt.anchoredPosition = new Vector2(0, -50);
+                }
+                
+                _reactorHeatText = rGo.GetComponent<TextMeshProUGUI>();
+                _reactorHeatText.fontSize = 20;
+                _reactorHeatText.alignment = TextAlignmentOptions.Center;
+                _reactorHeatText.gameObject.SetActive(false); // Only visible in Active phase
+            }
         }
 
         private void OnEnable()
@@ -98,11 +126,35 @@ namespace SpaceMaintenance.Tasks.UI
                 _taskListContainer.gameObject.SetActive(visible);
             if (_headerText != null)
                 _headerText.gameObject.SetActive(visible);
+            if (_reactorHeatText != null)
+                _reactorHeatText.gameObject.SetActive(visible);
         }
 
         private void Update()
         {
-            // Update timers for active critical tasks from TaskManager
+            // --- Reactor Heat UI ---
+            if (_reactor == null)
+            {
+                _reactor = Object.FindFirstObjectByType<SpaceMaintenance.ShipSystems.ReactorController>();
+            }
+
+            if (_reactor != null && _reactorHeatText != null)
+            {
+                float heat = _reactor.HeatLevel.Value;
+                _reactorHeatText.text = $"Reactor Heat: {heat:P0}";
+                
+                if (heat >= 0.5f) // Warning threshold
+                {
+                    _reactorHeatText.color = Color.Lerp(Color.red, Color.yellow, Mathf.PingPong(Time.time * 2f, 1f));
+                    _reactorHeatText.text += " - WARNING: COOL DOWN REQUIRED!";
+                }
+                else
+                {
+                    _reactorHeatText.color = Color.white;
+                }
+            }
+
+            // --- Update timers for active critical tasks from TaskManager ---
             if (TaskManager.Instance == null) return;
 
             var tasks = TaskManager.Instance.ActiveTasks;
@@ -132,6 +184,8 @@ namespace SpaceMaintenance.Tasks.UI
                 _taskListContainer.gameObject.SetActive(visible);
             if (_headerText != null)
                 _headerText.gameObject.SetActive(visible);
+            if (_reactorHeatText != null)
+                _reactorHeatText.gameObject.SetActive(visible);
         }
 
         // =================================================================

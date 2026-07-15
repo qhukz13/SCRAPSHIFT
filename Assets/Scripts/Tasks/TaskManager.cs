@@ -83,6 +83,11 @@ namespace SpaceMaintenance.Tasks
         //  TASK GENERATION (called by MissionFlowController)
         // =================================================================
 
+        public void InitializeShipSystems()
+        {
+            Debug.Log("[TaskManager] Ship systems initialized.");
+        }
+
         /// <summary>Generate mission tasks based on config and scene content.</summary>
         public void GenerateTasks()
         {
@@ -128,7 +133,9 @@ namespace SpaceMaintenance.Tasks
             int highCount = _config != null ? _config.HighTaskCount : 2;
             int medCount  = _config != null ? _config.MediumTaskCount : 3;
             int lowCount  = _config != null ? _config.LowTaskCount : 2;
-            float critTime = _config != null ? _config.CriticalTaskTimeLimit : 90f;
+            float baseCritTime = _config != null ? _config.CriticalTaskTimeLimit : 90f;
+            // Subtract 10 seconds per completed mission, down to a minimum of 30 seconds
+            float critTime = Mathf.Max(30f, baseCritTime - (SpaceMaintenance.Core.GlobalMissionParameters.MissionsCompleted * 10f));
 
             // Scan scene for generators
             var generators = FindObjectsByType<ShipSystems.GeneratorController>(FindObjectsSortMode.None);
@@ -241,6 +248,30 @@ namespace SpaceMaintenance.Tasks
         // =================================================================
         //  TASK COMPLETION
         // =================================================================
+
+        public void DebugCompleteAllTasks()
+        {
+            if (!IsServer) 
+            {
+                Debug.LogWarning("[TaskManager] DebugCompleteAllTasks called on client! Ignoring.");
+                return;
+            }
+            
+            Debug.Log($"[TaskManager] DebugCompleteAllTasks started. Total tasks: {ActiveTasks.Count}");
+            int completedThisRun = 0;
+            
+            for (int i = 0; i < ActiveTasks.Count; i++)
+            {
+                var task = ActiveTasks[i];
+                if (task.IsActive)
+                {
+                    CompleteTask(task.TaskId.ToString());
+                    completedThisRun++;
+                }
+            }
+            
+            Debug.Log($"[TaskManager] DebugCompleteAllTasks finished. Completed {completedThisRun} tasks this run.");
+        }
 
         /// <summary>Complete a task by ID. Called when a system is repaired.</summary>
         public void CompleteTask(string taskId)

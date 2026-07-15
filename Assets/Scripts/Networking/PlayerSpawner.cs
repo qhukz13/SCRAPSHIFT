@@ -12,19 +12,25 @@ namespace SpaceMaintenance.Networking
         {
             if (IsServer)
             {
-                var generator = FindFirstObjectByType<LevelGeneration.ProceduralShipGenerator>();
+                NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
+                
+                var generator = FindFirstObjectByType<ShipGeneration.ShipGenerator>();
                 if (generator != null)
                 {
-                    generator.OnGenerationComplete += HandleGenerationComplete;
+                    if (generator.IsGenerationComplete) {
+                        StartCoroutine(WaitAndHandleGenerationComplete());
+                    } else {
+                        generator.OnGenerationComplete += () => StartCoroutine(WaitAndHandleGenerationComplete());
+                    }
                 }
                 else
                 {
                     // Fallback if no generator in scene
-                    // Wait a moment for clients to finish scene synchronization before attempting to spawn them.
                     StartCoroutine(WaitAndHandleGenerationComplete());
                 }
             }
         }
+
 
         private System.Collections.IEnumerator WaitAndHandleGenerationComplete()
         {
@@ -37,11 +43,11 @@ namespace SpaceMaintenance.Networking
         private void HandleGenerationComplete()
         {
             // Dynamically find spawn points from the generated ship
-            var points = GameObject.FindGameObjectsWithTag("Respawn");
-            if (points != null && points.Length > 0)
+            var points = ShipGeneration.ShipSpawnPoint.SpawnPoints;
+            if (points != null && points.Count > 0)
             {
-                _spawnPoints = new Transform[points.Length];
-                for (int i = 0; i < points.Length; i++) _spawnPoints[i] = points[i].transform;
+                _spawnPoints = new Transform[points.Count];
+                for (int i = 0; i < points.Count; i++) _spawnPoints[i] = points[i];
             }
             else
             {
@@ -73,17 +79,23 @@ namespace SpaceMaintenance.Networking
             if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client) && client.PlayerObject != null)
             {
                 Debug.Log($"[PlayerSpawner] Client {clientId} already has a player object. Teleporting to spawn point.");
-                if (spawnPoint != null)
+                
+                Vector3 teleportPos = Vector3.up * 2f;
+                Quaternion teleportRot = Quaternion.identity;
+
+                if (ShipGeneration.ShipSpawnPoint.SpawnPoints.Count > 0)
                 {
-                    // For NetworkTransform to snap correctly, we might just set position, 
-                    // but direct transform modification is fine if the player owns it.
-                    client.PlayerObject.transform.position = spawnPoint.position;
-                    client.PlayerObject.transform.rotation = spawnPoint.rotation;
+                    var pt = ShipGeneration.ShipSpawnPoint.SpawnPoints[0];
+                    teleportPos = pt.position + Vector3.up;
+                    teleportRot = pt.rotation;
                 }
-                else
+
+                Debug.Log($"[PlayerSpawner] Server commanding client {clientId} to teleport to {teleportPos}");
+                ClientRpcParams rpcParams = new ClientRpcParams
                 {
-                    client.PlayerObject.transform.position = Vector3.up * 2f;
-                }
+                    Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { clientId } }
+                };
+                TeleportClientRpc(teleportPos, teleportRot, rpcParams);
                 return;
             }
 
@@ -103,17 +115,41 @@ namespace SpaceMaintenance.Networking
                 return;
             }
 
-            if (spawnPoint == null) spawnPoint = _spawnPoints[0]; // Extra safety
-
-            GameObject player = Instantiate(_playerPrefab, spawnPoint.position, spawnPoint.rotation);
-            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+            Vector3 targetPos = spawnPoint.position + Vector3.up;
+            Debug.Log($"[PlayerSpawner] Spawning new player for client {clientId} at {targetPos}");
+            GameObject player = Instantiate(_playerPrefab, targetPos, spawnPoint.rotation);
+            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
         }
 
         public override void OnNetworkDespawn()
         {
-            if (IsServer && NetworkManager.Singleton != null)
+            if (IsServer)
             {
                 NetworkManager.Singleton.OnClientConnectedCallback -= SpawnPlayer;
+            }
+        }
+
+        [ClientRpc]
+        private void TeleportClientRpc(Vector3 targetPos, Quaternion targetRot, ClientRpcParams clientRpcParams = default)
+        {
+            if (NetworkManager.Singleton.LocalClient == null || NetworkManager.Singleton.LocalClient.PlayerObject == null) return;
+
+            var pObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+            Debug.Log($"[PlayerSpawner] Client received teleport RPC to {targetPos}");
+
+            var nt = pObj.GetComponent<Unity.Netcode.Components.NetworkTransform>();
+            if (nt != null) {
+                nt.Teleport(targetPos, targetRot, pObj.transform.localScale);
+            } else {
+                pObj.transform.position = targetPos;
+                pObj.transform.rotation = targetRot;
+            }
+            
+            var rb = pObj.GetComponent<Rigidbody>();
+            if (rb != null) {
+                rb.position = targetPos;
+                rb.rotation = targetRot;
+                rb.linearVelocity = Vector3.zero;
             }
         }
     }

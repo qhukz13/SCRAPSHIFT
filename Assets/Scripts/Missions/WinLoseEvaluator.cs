@@ -46,7 +46,7 @@ namespace SpaceMaintenance.Missions
                 return;
             }
 
-            // Check Lose Condition — Timer expired
+            // Check Win/Lose Condition — Timer expired
             if (RoundManager.Instance.TimeRemaining.Value <= 0)
             {
                 int completed = 0;
@@ -56,7 +56,16 @@ namespace SpaceMaintenance.Missions
                     completed = Tasks.TaskManager.Instance.GetCompletedCount();
                     total = Tasks.TaskManager.Instance.ActiveTasks.Count;
                 }
-                TriggerGameOver(false, $"Time ran out. Tasks completed: {completed}/{total}.");
+
+                var mode = RoundManager.Instance.GetConfig()?.Mode ?? GameMode.Survival;
+                if (mode == GameMode.Survival)
+                {
+                    TriggerGameOver(true, $"Time survived! Rescue has arrived. Tasks completed: {completed}/{total}.");
+                }
+                else
+                {
+                    TriggerGameOver(false, $"Time ran out before quota was met. Tasks completed: {completed}/{total}.");
+                }
             }
         }
 
@@ -73,9 +82,21 @@ namespace SpaceMaintenance.Missions
         private void OnAllTasksCompleted(AllTasksCompletedEvent evt)
         {
             if (!IsServer || _gameOverTriggered) return;
+
+            var mode = RoundManager.Instance.GetConfig()?.Mode ?? GameMode.Survival;
             int completed = Tasks.TaskManager.Instance != null
                 ? Tasks.TaskManager.Instance.GetCompletedCount() : 0;
-            TriggerGameOver(true, $"All {completed} tasks completed! Ship stabilized.");
+
+            Debug.Log($"[WinLoseEvaluator] OnAllTasksCompleted triggered. Mode: {mode}, Completed: {completed}");
+
+            if (mode == GameMode.Tasks)
+            {
+                TriggerGameOver(true, $"All {completed} tasks completed! Ship stabilized.");
+            }
+            else
+            {
+                Debug.Log($"[WinLoseEvaluator] All {completed} tasks completed, but playing in Survival mode. Keep surviving!");
+            }
         }
 
         // =================================================================
@@ -86,6 +107,11 @@ namespace SpaceMaintenance.Missions
         {
             _gameOverTriggered = true;
             RoundManager.Instance.EndRound();
+
+            if (won)
+            {
+                SpaceMaintenance.Core.GlobalMissionParameters.MissionsCompleted++;
+            }
 
             int payout = CalculatePayout();
             if (EconomyManager.Instance != null && payout > 0)
