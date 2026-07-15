@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52f4b00b753a0f846bc7fcf4f82dfe54, type: 3}
+  m_Name: RealShipTemplate
+  m_EditorClassIdentifier: 
+  ShipName: Real Cargo Ship
+  Difficulty: 1
+  NumberOfFloors: 1
+  MinimumRooms: 5
+  MaximumRooms: 15
+  RequiredRooms: 0000000004000000
+  OptionalRooms:
+  - RoomType: 2
+    MinCount: 2
+    MaxCount: 6
+    SpawnWeight: 0
+  - RoomType: 9
+    MinCount: 2
+    MaxCount: 5
+    SpawnWeight: 0
+  GenerationRules: []

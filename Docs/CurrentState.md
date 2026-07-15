@@ -32,7 +32,8 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
   - `MinigameManager` singleton managing Screen Space Overlay canvas.
   - **WireConnectMinigame** — first minigame (connect colored wires to matching sockets).
   - **PipeAlignMinigame** — second minigame (rotate pipes to restore flow).
-- **Procedural Generation:** Added `ShipBlockoutGenerator` that uses Subtractive BSP to generate dense, multi-room ship layouts instantly.
+- **Procedural Generation (V1):** Added `ShipBlockoutGenerator` that uses Subtractive BSP to generate dense, multi-room ship layouts instantly. (Deprecated Prototype)
+- **Procedural Generation (V2):** Established data-driven architecture (`RoomType`, `RoomCategory`, `RoomTags`, `ShipTemplate`, `RoomDatabase`) and the 14-stage pipeline for prefab-based ship generation. Implementation of the logic graph and physical placement is pending.
 
 ## Done
 - [x] Integrate minigame UI prefab (WireConnect) into `Generator` and implement `IMinigameRepairable`.

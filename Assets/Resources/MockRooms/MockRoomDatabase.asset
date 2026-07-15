@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38a37c3070fc2d54b935765fc6265e88, type: 3}
+  m_Name: MockRoomDatabase
+  m_EditorClassIdentifier: 
+  Rooms:
+  - Prefab: {fileID: 6310895439170698257, guid: a0324a1a11c35ff48b0f4e21f28a6d84, type: 3}
+    RoomType: 0
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 3030886503285394650, guid: 39ad3437d686ea64ca7185448a765941, type: 3}
+    RoomType: 2
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 7265570346532611930, guid: 0f9f1573acdcef9419e975f690406f97, type: 3}
+    RoomType: 3
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 3698461710163789350, guid: d9a45e17a459260449d50dd4cfab5cf7, type: 3}
+    RoomType: 4
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 4516332410923270105, guid: f2a6a8330165c644db6aa0b13200849b, type: 3}
+    RoomType: 7
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 222795936545508443, guid: a81a8d27e22b12a468d853c0580fa606, type: 3}
+    RoomType: 9
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 

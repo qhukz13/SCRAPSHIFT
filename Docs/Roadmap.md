@@ -9,9 +9,11 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [x] Foundational Win/Lose logic
 
 ## Current High Priority
+- [ ] **Pipe Replacement:** Replace the current placeholder pipes for the generator and reactor with existing pipe prefabs.
+- [ ] **Second Floor & Ladders:** Add a ladder prefab and begin implementing generation for the second floor.
+- [ ] **Random Item Spawns:** Implement random item spawning in the location (starting with the wrench for pipe repair).
 - [ ] **Fix Player Spawning:** Players are still occasionally spawning outside the generated ship layout. (Needs investigation into teleport timing or Room_Spawn bounds).
 - [ ] **Ship Generation Layout Overhaul:** Refactor the generator to create a linear/predictable ship structure (e.g., spawn room on the far left, reactor in the center) with placeholder rooms, instead of a massive randomized labyrinth.
-- [ ] **Pipe Generation:** Generate interactive pipes properly on walls and connect them visually.
 
 ## Phase 2 — Core Gameplay (In Progress)
 - [x] Player Movement overhaul (Sprint, Crouch, Jump, Air control)
@@ -24,8 +26,12 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [x] Fix GameManager network spawn issues (Removed DontDestroyOnLoad from EconomyManager to fix HUD and mission flow).
 - [x] Fix Reactor interaction input sticking (Consumed InteractInput properly).
 
-## Phase 3 — Vertical Slice (Planned)
-- [ ] Implement Prefab-based Procedural Generation (Ship layout built from configured room prefabs: Reactor Room, Generator Room, Corridors, etc.).
+## Phase 3 — Vertical Slice (In Progress)
+- [x] Implement Prefab-based Procedural Generation (Data structures and pipeline architecture created. Graph and physical placement logic pending).
+- [x] **Room Placer:** Спавнит комнаты, вращает их, проверяет коллизии Bounds.
+- [x] **Mock Prefabs:** Сделать тестовые кубики (заменено на нормальные префабы).
+- [ ] **Connecting doors:** Спавн дверей между комнатами (Prefab_Door).
+- [ ] Replace temporary Mock Prefabs with final handcrafted 3D room prefabs.
 - [ ] Overhaul Door Functionality (setup actual door logic and interactions, replacing the current dummy implementation).
 - [ ] Find and import 3D Models for Reactor, Generator, Door, Hub Terminal, and Hub Shop. (Models must be created externally and placed in the models folder; AI does not create 3D models).
 - [ ] Base Hub environment for between-mission progression

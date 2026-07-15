@@ -8,7 +8,12 @@ This document outlines the high-level systems that drive SCRAPSHIFT. *(Note: Thi
 - **Game Bootstrap:** Entry point that initializes all core services.
 - **State Machines:** Drives the logic for players, interactables, and mission flow.
 
-## 2. Player Systems (Implemented)
+## 2. Procedural Generation (V2)
+- **ShipGenerator:** Orchestrates a 14-stage pipeline to generate deterministic, completable ships.
+- **Data-Driven Design:** Relies on `ShipTemplate` (blueprint), `RoomDatabase` (prefabs), and `RoomDefinition` (socket data).
+- **Graph & Validation:** Builds a logical `RoomGraph` before physical placement, followed by a `LayoutValidator` to ensure playability.
+
+## 3. Player Systems (Implemented)
 - **Player Controller:** Handles movement, state (Idle, Moving, Sprinting, Crouching, Jumping, Falling, Carrying), and client-side prediction.
 - **Interaction System:** Raycast/Trigger-based detection utilizing `IInteractable`.
 - **Physics Grab:** Allows players to pick up and manipulate `IGrabbable` objects with physics forces.

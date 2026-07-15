@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38a37c3070fc2d54b935765fc6265e88, type: 3}
+  m_Name: RealRoomDatabase
+  m_EditorClassIdentifier: 
+  Rooms:
+  - Prefab: {fileID: -7557391521616163831, guid: 18c1f1848e4c2ed4bb746040a76597f1, type: 3}
+    RoomType: 2
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 1547620132875304146, guid: a56498ad589c69d48824e18e1fda5d7d, type: 3}
+    RoomType: 5
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: -5758658815635692464, guid: 5e1cd88185c5a2742b0a7bdac5faf1d8, type: 3}
+    RoomType: 2
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 950245149695053854, guid: 99f41ba07468e1649a04cb229f7518bf, type: 3}
+    RoomType: 3
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 4331501669711367082, guid: 9b6314b23f0befa4dbdf3eb613adadd6, type: 3}
+    RoomType: 7
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 5370182254400788424, guid: ba237fb4cbdb259438fb91b4e3f972bd, type: 3}
+    RoomType: 2
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 5200033258067333067, guid: cf8b7a02cdde4794d97e333fd212f8a2, type: 3}
+    RoomType: 4
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
+  - Prefab: {fileID: 2037734745065064948, guid: 1748509b8d479d843abba64bbe607593, type: 3}
+    RoomType: 0
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 
