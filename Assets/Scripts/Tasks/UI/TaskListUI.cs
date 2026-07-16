@@ -37,40 +37,7 @@ namespace SpaceMaintenance.Tasks.UI
         {
             if (_taskEntryPrefab == null)
             {
-                var go = new GameObject("TaskEntryTemplate", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(CanvasGroup), typeof(TaskEntryUI));
-                go.SetActive(false);
-                go.transform.SetParent(transform, false);
-
-                var rt = go.GetComponent<RectTransform>();
-                rt.sizeDelta = new Vector2(300, 40);
-                go.GetComponent<UnityEngine.UI.Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.8f);
-
-                var icon = new GameObject("PriorityIcon", typeof(RectTransform), typeof(UnityEngine.UI.Image));
-                icon.transform.SetParent(go.transform, false);
-                var iconRt = icon.GetComponent<RectTransform>();
-                iconRt.anchorMin = new Vector2(0, 0.5f); iconRt.anchorMax = new Vector2(0, 0.5f);
-                iconRt.sizeDelta = new Vector2(20, 20);
-                iconRt.anchoredPosition = new Vector2(20, 0);
-
-                var nameText = new GameObject("TaskNameText", typeof(RectTransform), typeof(TextMeshProUGUI));
-                nameText.transform.SetParent(go.transform, false);
-                var nameRt = nameText.GetComponent<RectTransform>();
-                nameRt.anchorMin = new Vector2(0, 0); nameRt.anchorMax = new Vector2(1, 1);
-                nameRt.offsetMin = new Vector2(40, 0); nameRt.offsetMax = new Vector2(-60, 0);
-                var nTmp = nameText.GetComponent<TextMeshProUGUI>();
-                nTmp.fontSize = 18;
-                nTmp.alignment = TextAlignmentOptions.Left;
-
-                var timeText = new GameObject("TimerText", typeof(RectTransform), typeof(TextMeshProUGUI));
-                timeText.transform.SetParent(go.transform, false);
-                var timeRt = timeText.GetComponent<RectTransform>();
-                timeRt.anchorMin = new Vector2(1, 0); timeRt.anchorMax = new Vector2(1, 1);
-                timeRt.offsetMin = new Vector2(-60, 0); timeRt.offsetMax = new Vector2(0, 0);
-                var tTmp = timeText.GetComponent<TextMeshProUGUI>();
-                tTmp.fontSize = 18;
-                tTmp.alignment = TextAlignmentOptions.Right;
-
-                _taskEntryPrefab = go;
+                Debug.LogWarning("[TaskListUI] _taskEntryPrefab is missing! Please assign it in the Inspector.");
             }
 
             if (_reactorHeatText == null)

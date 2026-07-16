@@ -12,6 +12,8 @@ namespace SpaceMaintenance.Damage
         public NetworkVariable<float> HullIntegrity = new NetworkVariable<float>(100f);
         public NetworkVariable<float> MaxHullIntegrity = new NetworkVariable<float>(100f);
 
+        public bool IsInvincible { get; set; } = false;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) Destroy(gameObject);
@@ -30,6 +32,7 @@ namespace SpaceMaintenance.Damage
         public void TakeDamage(float amount)
         {
             if (!IsServer) return;
+            if (IsInvincible) return;
             
             HullIntegrity.Value = Mathf.Max(0, HullIntegrity.Value - amount);
             PublishHullUpdate();

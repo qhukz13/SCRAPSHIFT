@@ -26,6 +26,15 @@ namespace SpaceMaintenance.Player
             if (_mainCamera == null) _mainCamera = Camera.main;
         }
 
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner && _grabbedObject != null)
+            {
+                Release();
+            }
+            base.OnNetworkDespawn();
+        }
+
         private void Update()
         {
             if (!IsOwner) return;

@@ -49,6 +49,8 @@ namespace SpaceMaintenance.Player
         public bool  IsSprinting        { get; private set; }
         public float CurrentStamina     { get; private set; }
         public bool  StaminaDepleted    { get; private set; }
+        
+        public bool  IsNoclip           { get; set; }
 
         // Original heights for crouch lerp
         private float _standCameraY;
@@ -116,7 +118,18 @@ namespace SpaceMaintenance.Player
         {
             if (!IsOwner) return;
 
-            CheckGrounded();
+            if (IsNoclip)
+            {
+                Rb.useGravity = false;
+                if (_capsule != null) _capsule.enabled = false;
+            }
+            else
+            {
+                Rb.useGravity = true;
+                if (_capsule != null) _capsule.enabled = true;
+                CheckGrounded();
+            }
+
             _stateMachine.Update();
             CameraController.HandleCameraRotation();
             UpdateCrouchVisuals();
@@ -140,6 +153,17 @@ namespace SpaceMaintenance.Player
         /// <summary>Move the player with a given speed multiplier.</summary>
         public void Move(Vector2 input, float speedMultiplier)
         {
+            if (IsNoclip)
+            {
+                // Noclip movement: Move along camera's forward/right vectors
+                Transform camT = CameraController.transform.GetChild(0); // Camera is usually first child or we can just use Camera.main
+                if (Camera.main != null) camT = Camera.main.transform;
+                
+                Vector3 noclipDir = camT.right * input.x + camT.forward * input.y;
+                Rb.linearVelocity = noclipDir.normalized * (Config.MoveSpeed * speedMultiplier * 2.5f); // Faster in noclip
+                return;
+            }
+
             Vector3 moveDir = transform.right * input.x + transform.forward * input.y;
             Vector3 target  = moveDir.normalized * (Config.MoveSpeed * speedMultiplier);
             target.y = Rb.linearVelocity.y;
@@ -170,6 +194,7 @@ namespace SpaceMaintenance.Player
 
         public void Jump()
         {
+            if (IsNoclip) return;
             Rb.AddForce(Vector3.up * Config.JumpForce, ForceMode.Impulse);
         }
 

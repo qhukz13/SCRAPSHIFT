@@ -32,6 +32,7 @@ namespace ShipGeneration {
         private GridNode[,] grid;
         private List<RoomInstanceData> plannedRooms = new List<RoomInstanceData>();
         private List<RoomData> spawnedRooms = new List<RoomData>();
+        public IReadOnlyList<RoomData> SpawnedRooms => spawnedRooms;
         
         private class RoomInstanceData {
             public RoomData Prefab;

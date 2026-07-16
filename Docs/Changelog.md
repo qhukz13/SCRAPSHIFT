@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added — Minigames & Systems Expansion
+- **Developer Console:** Added a global developer console (toggled with \`) for testing. Features `noclip`, `thirdperson`, `godmode`, and `heal`. Uses `[RuntimeInitializeOnLoadMethod]` to auto-inject globally.
+- **TerminalController:** New interactive system that triggers the **SequenceInput** minigame when broken.
+- **LifeSupportController:** New interactive system that triggers the **PressureBalance** minigame when broken.
+- **PressureBalanceMinigame:** New minigame where players adjust 3 valves to stabilize pressure within a drifting target zone.
+- **CircuitTraceMinigame:** New grid-based minigame where players connect nodes without crossing paths.
+- **UI Prefabs & Win/Loss VFX:** Automated Editor scripts to generate standard UI prefabs (TaskEntryUI, DarkShipPrompt). Added camera shake and visual explosions (`GameOverEffects.cs`) when the reactor melts down or hull is destroyed.
+- **Disconnect Protection:** Implemented logic in `PhysicsGrabController` to automatically drop held items when a player disconnects, preventing item loss.
+
+### Added — Random Item Spawning & Scene Setup
+- **ItemSpawner:** New `NetworkBehaviour` that randomly distributes items (Wrench, ScrapItem) across the ship after procedural generation completes. Fully supports both V1 and V2 generation systems.
+- **RoomData Update:** Added `ItemSpawns` list to `RoomData` for configuring specific item placement points.
+- **Scene Setup:** Verified and attached all necessary managers (`TaskManager`, `MissionFlowController`) to `GameManager` inside the `main.unity` scene.
+
 ### Added — Procedural Generation & Minigames
 - **ShipBlockoutGenerator:** Added a Subtractive BSP generator to instantly create dense, multi-room ship layouts (walls, floors, corridors, reactor room). Can be run in editor via ContextMenu.
 - **PipeAlignMinigame:** Added a new repair minigame where the player must click to rotate pipe segments on a grid to restore flow.

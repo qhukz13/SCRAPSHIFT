@@ -19,6 +19,9 @@ namespace SpaceMaintenance.Player
         /// <summary>Current local Y of the camera (used by crouch lerp).</summary>
         public float CameraLocalY => _cameraTransform != null ? _cameraTransform.localPosition.y : 0f;
 
+        public bool IsThirdPerson { get; private set; }
+        private Vector3 _firstPersonLocalPos;
+
         public void Initialize(PlayerInputHandler input, PlayerMovementConfig config)
         {
             _inputHandler = input;
@@ -29,6 +32,11 @@ namespace SpaceMaintenance.Player
             {
                 var cam = GetComponentInChildren<Camera>();
                 if (cam != null) _cameraTransform = cam.transform;
+            }
+
+            if (_cameraTransform != null)
+            {
+                _firstPersonLocalPos = _cameraTransform.localPosition;
             }
         }
 
@@ -74,10 +82,28 @@ namespace SpaceMaintenance.Player
         /// <summary>Set the camera's local Y position (for smooth crouch transitions).</summary>
         public void SetTargetLocalY(float y)
         {
-            if (_cameraTransform == null) return;
+            if (_cameraTransform == null || IsThirdPerson) return;
             var pos = _cameraTransform.localPosition;
             pos.y = y;
             _cameraTransform.localPosition = pos;
+        }
+
+        public void ToggleThirdPerson()
+        {
+            IsThirdPerson = !IsThirdPerson;
+            if (_cameraTransform != null)
+            {
+                if (IsThirdPerson)
+                {
+                    _firstPersonLocalPos = _cameraTransform.localPosition;
+                    // Move camera back and up
+                    _cameraTransform.localPosition = new Vector3(0, 1.5f, -3f);
+                }
+                else
+                {
+                    _cameraTransform.localPosition = _firstPersonLocalPos;
+                }
+            }
         }
     }
 }

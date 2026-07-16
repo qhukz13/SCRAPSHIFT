@@ -83,7 +83,7 @@ namespace SpaceMaintenance.Missions.UI
                 
                 if (_resultTitle != null)
                 {
-                    _resultTitle.text = isVictory ? "VICTORY" : "DEFEAT";
+                    _resultTitle.text = isVictory ? "SHIFT COMPLETED" : "SHIFT FAILED";
                     _resultTitle.color = isVictory ? Color.green : Color.red;
                 }
 

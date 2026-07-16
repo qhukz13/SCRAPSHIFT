@@ -13,6 +13,10 @@ namespace ShipGeneration {
         public Transform ReactorSpawn;
         public Transform PlayerSpawnArea;
         
+        [Header("Item Spawn Points")]
+        [Tooltip("General-purpose spawn points for items (wrench, scrap, etc.)")]
+        public List<Transform> ItemSpawns = new List<Transform>();
+
         [Header("Door Anchors (Optional)")]
         public List<Transform> DoorAnchors = new List<Transform>();
     }
