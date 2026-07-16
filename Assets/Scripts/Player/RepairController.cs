@@ -27,7 +27,7 @@ namespace SpaceMaintenance.Player
 
         private void Update()
         {
-            if (!IsOwner) return;
+            if (!IsSpawned || !IsOwner) return;
 
             if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.rKey.isPressed) // Hold R to repair
             {

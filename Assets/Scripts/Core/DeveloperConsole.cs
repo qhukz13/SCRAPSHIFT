@@ -185,13 +185,7 @@ namespace SpaceMaintenance.Core
             canvasGo.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasGo.AddComponent<GraphicRaycaster>();
             
-            // Add EventSystem if missing
-            if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
-            {
-                var esGo = new GameObject("EventSystem");
-                esGo.AddComponent<UnityEngine.EventSystems.EventSystem>();
-                esGo.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            }
+            // EventSystem is assumed to be present in all scenes
 
             // Panel
             var panelGo = new GameObject("Panel", typeof(RectTransform), typeof(Image));

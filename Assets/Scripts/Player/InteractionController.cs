@@ -21,7 +21,7 @@ namespace SpaceMaintenance.Player
 
         private void Update()
         {
-            if (!IsOwner) return;
+            if (!IsSpawned || !IsOwner) return;
 
             if (_input.InteractInput)
             {

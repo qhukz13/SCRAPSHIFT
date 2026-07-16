@@ -37,7 +37,7 @@ namespace SpaceMaintenance.Player
 
         private void Update()
         {
-            if (!IsOwner) return;
+            if (!IsSpawned || !IsOwner) return;
 
             if (Mouse.current != null)
             {
@@ -55,7 +55,7 @@ namespace SpaceMaintenance.Player
 
         private void FixedUpdate()
         {
-            if (!IsOwner) return;
+            if (!IsSpawned || !IsOwner) return;
 
             if (_grabbedObject != null && _grabbedObject.Rigidbody != null)
             {

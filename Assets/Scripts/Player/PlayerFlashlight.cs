@@ -55,7 +55,7 @@ namespace SpaceMaintenance.Player
 
         private void Update()
         {
-            if (IsOwner)
+            if (IsSpawned && IsOwner)
             {
                 HandleInput();
             }
@@ -93,7 +93,7 @@ namespace SpaceMaintenance.Player
                 if (CurrentBattery <= 0)
                 {
                     CurrentBattery = 0;
-                    if (IsOwner)
+                    if (IsSpawned && IsOwner)
                     {
                         // Force turn off via RPC
                         ToggleFlashlightServerRpc(false);

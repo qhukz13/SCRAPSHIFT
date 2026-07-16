@@ -116,22 +116,22 @@ namespace SpaceMaintenance.Player
 
         private void Update()
         {
-            if (!IsOwner) return;
+            if (!IsSpawned || !IsOwner) return;
 
             if (IsNoclip)
             {
-                Rb.useGravity = false;
+                if (Rb != null) Rb.useGravity = false;
                 if (_capsule != null) _capsule.enabled = false;
             }
             else
             {
-                Rb.useGravity = true;
+                if (Rb != null) Rb.useGravity = true;
                 if (_capsule != null) _capsule.enabled = true;
                 CheckGrounded();
             }
 
-            _stateMachine.Update();
-            CameraController.HandleCameraRotation();
+            if (_stateMachine != null) _stateMachine.Update();
+            if (CameraController != null) CameraController.HandleCameraRotation();
             UpdateCrouchVisuals();
             UpdateStamina();
             UpdateFootsteps();
@@ -273,6 +273,8 @@ namespace SpaceMaintenance.Player
 
         private void UpdateStamina()
         {
+            if (Config == null) return;
+
             if (IsSprinting)
             {
                 CurrentStamina -= Time.deltaTime;
@@ -327,6 +329,8 @@ namespace SpaceMaintenance.Player
 
         private void UpdateCrouchVisuals()
         {
+            if (CameraController == null || Config == null) return;
+
             CameraController.SetTargetLocalY(
                 Mathf.Lerp(CameraController.CameraLocalY, _targetCameraY, Config.CrouchTransitionSpeed * Time.deltaTime)
             );

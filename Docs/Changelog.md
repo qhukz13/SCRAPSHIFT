@@ -63,6 +63,8 @@ All notable changes to this project will be documented in this file.
 - **Mission UI**: Fixed HUD UI scaling by switching `MissionCanvas` to `Scale With Screen Size` and properly anchoring UI elements (`DescText`, `HullBar`, `TaskPanel`) to screen corners.
 - **Mission Result UI**: Fixed result texts (VICTORY, etc.) overlapping by manually positioning and resizing RectTransforms instead of using `VerticalLayoutGroup`.
 - **ReactorController**: Fixed `NullReferenceException` on interact by automatically loading `DefaultPowerConfig` from `Resources` if the Inspector reference is missing.
+- **Developer Console**: Removed redundant `EventSystem` creation in `DeveloperConsole` that triggered a warning in the editor log.
+- **Ghost Player RPC Errors**: Fixed an issue where an unspawned/placeholder Player prefab left in the scene (such as during dev testing) would run its `Update()` loop alongside the networked player. This previously caused `NullReferenceException` spam during initialization and `RpcException: The NetworkBehaviour must be spawned` when attempting to repair objects. Added explicit `!IsSpawned` abort checks to `RepairController`, `PlayerController`, `PhysicsGrabController`, `InteractionController`, and `PlayerFlashlight`.
 
 ### Changed — Player Movement Overhaul
 - **PlayerController**: Full rewrite — added sprint (LeftShift, stamina drain/regen/cooldown), crouch (C toggle / LeftCtrl hold, capsule resize, ceiling check, smooth camera lerp), separate Falling state, air control multiplier.
