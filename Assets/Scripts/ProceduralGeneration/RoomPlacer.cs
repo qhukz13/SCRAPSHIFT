@@ -10,7 +10,10 @@ namespace ProceduralGeneration
         private RoomDatabase roomDatabase;
         private GenerationSettings settings;
         
-        private List<RoomDefinition> placed = new List<RoomDefinition>();
+        private List<RoomInstance> placed = new List<RoomInstance>();
+
+        private int currentIterations = 0;
+        private const int MaxIterations = 200000;
 
         public RoomPlacer(Transform root, RoomDatabase db, GenerationSettings genSettings)
         {
@@ -19,16 +22,17 @@ namespace ProceduralGeneration
             settings = genSettings;
         }
 
-        public bool PlaceRooms(RoomGraph graph, out List<RoomDefinition> placedRooms)
+        public bool PlaceRooms(RoomGraph graph, out List<RoomInstance> placedRooms)
         {
-            placedRooms = new List<RoomDefinition>();
+            currentIterations = 0;
+            placedRooms = new List<RoomInstance>();
             placed.Clear();
             
             var nodes = graph.GetNodes();
             if (nodes.Count == 0) return false;
 
             var sortedNodes = nodes.OrderBy(n => n.Depth).ToList();
-            Dictionary<RoomNode, RoomDefinition> nodeToRoom = new Dictionary<RoomNode, RoomDefinition>();
+            Dictionary<RoomNode, RoomInstance> nodeToRoom = new Dictionary<RoomNode, RoomInstance>();
 
             // 1. Instantiate all prefabs at origin
             foreach (var node in sortedNodes)
@@ -41,8 +45,12 @@ namespace ProceduralGeneration
                     return false;
                 }
 
-                RoomDefinition roomInstance = Object.Instantiate(prefabEntry.Prefab, shipRoot);
-                roomInstance.name = $"{node.RoomType}_{node.NodeID}";
+                RoomDefinition roomDef = Object.Instantiate(prefabEntry.Prefab, shipRoot);
+                roomDef.name = $"{node.RoomType}_{node.NodeID}";
+                
+                RoomInstance roomInstance = roomDef.gameObject.AddComponent<RoomInstance>();
+                roomInstance.Initialize(roomDef, node.Floor);
+
                 nodeToRoom[node] = roomInstance;
             }
 
@@ -54,9 +62,48 @@ namespace ProceduralGeneration
                 return false;
             }
 
+            CreateDynamicCycles();
             ProcessWallPlugs();
             placedRooms.AddRange(placed);
             return true;
+        }
+
+        private void CreateDynamicCycles()
+        {
+            // O(N^2) search for adjacent unused sockets that can be linked to form cycles (loops) in the graph.
+            for (int i = 0; i < placed.Count; i++)
+            {
+                for (int j = i + 1; j < placed.Count; j++)
+                {
+                    var roomA = placed[i];
+                    var roomB = placed[j];
+                    
+                    foreach (var sockA in roomA.Definition.DoorSockets)
+                    {
+                        if (sockA.IsUsed) continue;
+                        Vector3 posA = roomA.transform.TransformPoint(sockA.LocalPosition);
+                        Vector3 dirA = roomA.transform.TransformDirection(sockA.LocalDirection);
+
+                        foreach (var sockB in roomB.Definition.DoorSockets)
+                        {
+                            if (sockB.IsUsed) continue;
+                            Vector3 posB = roomB.transform.TransformPoint(sockB.LocalPosition);
+                            Vector3 dirB = roomB.transform.TransformDirection(sockB.LocalDirection);
+
+                            // Sockets must be touching (distance < 0.1) and facing opposite directions (dot < -0.9)
+                            if (Vector3.Distance(posA, posB) < 0.1f && Vector3.Dot(dirA, dirB) < -0.9f)
+                            {
+                                sockA.IsUsed = true;
+                                sockB.IsUsed = true;
+                                // Break outer loop to move to the next unused socket in Room A
+                                // so we don't accidentally link one socket to multiple others if they happen to overlap
+                                goto NextSockA;
+                            }
+                        }
+                        NextSockA:;
+                    }
+                }
+            }
         }
 
         private void ProcessWallPlugs()
@@ -66,7 +113,7 @@ namespace ProceduralGeneration
                 Transform visuals = room.transform.Find("Visuals");
                 if (visuals == null) continue;
 
-                foreach (var socket in room.DoorSockets)
+                foreach (var socket in room.Definition.DoorSockets)
                 {
                     if (socket.IsUsed)
                     {
@@ -87,7 +134,7 @@ namespace ProceduralGeneration
             }
         }
 
-        private void Cleanup(Dictionary<RoomNode, RoomDefinition> nodeToRoom)
+        private void Cleanup(Dictionary<RoomNode, RoomInstance> nodeToRoom)
         {
             foreach (var kvp in nodeToRoom)
             {
@@ -97,8 +144,14 @@ namespace ProceduralGeneration
             placed.Clear();
         }
 
-        private bool DFS(int index, List<RoomNode> sortedNodes, Dictionary<RoomNode, RoomDefinition> nodeToRoom)
+        private bool DFS(int index, List<RoomNode> sortedNodes, Dictionary<RoomNode, RoomInstance> nodeToRoom)
         {
+            currentIterations++;
+            if (currentIterations > MaxIterations)
+            {
+                return false; // Fail fast if we're caught in a combinatorial explosion
+            }
+
             if (index >= sortedNodes.Count) return true; // All placed!
 
             var node = sortedNodes[index];
@@ -106,7 +159,7 @@ namespace ProceduralGeneration
 
             if (node.ParentNode == null)
             {
-                newRoom.transform.localPosition = Vector3.zero;
+                newRoom.transform.localPosition = new Vector3(0, (node.Floor - 1) * settings.FloorHeight, 0);
                 newRoom.transform.localRotation = Quaternion.identity;
                 placed.Add(newRoom);
 
@@ -118,22 +171,27 @@ namespace ProceduralGeneration
 
             var parentRoom = nodeToRoom[node.ParentNode];
             
-            // Prioritize Forward sockets to make the ship linear and logical
-            var parentSockets = parentRoom.DoorSockets.OrderBy(s => 
+            // Favor outward growth but with some randomness to keep it organic and avoid straight lines.
+            var parentSockets = parentRoom.Definition.DoorSockets.OrderBy(s => 
             {
-                Vector3 worldDir = parentRoom.transform.TransformDirection(s.LocalDirection);
-                float alignment = Vector3.Dot(worldDir, parentRoom.transform.forward);
-                return -alignment + (UnityEngine.Random.value * 0.1f);
+                Vector3 socketWorldPos = parentRoom.transform.TransformPoint(s.LocalPosition);
+                return -socketWorldPos.magnitude + (UnityEngine.Random.value * 15f);
             }).ToList();
 
-            var childSockets = newRoom.DoorSockets.OrderBy(s => UnityEngine.Random.value).ToList();
+            var childSockets = newRoom.Definition.DoorSockets.OrderBy(s => 
+            {
+                // We want the room's Z-axis to align with the placement direction
+                return -Mathf.Abs(s.LocalDirection.z) + (UnityEngine.Random.value * 0.1f);
+            }).ToList();
 
             foreach (var parentSocket in parentSockets)
             {
+                if (currentIterations > MaxIterations) return false; // Abort instantly if limit reached
                 if (parentSocket.IsUsed) continue;
 
                 foreach (var childSocket in childSockets)
                 {
+                    if (currentIterations > MaxIterations) return false; // Abort instantly if limit reached
                     if (childSocket.IsUsed) continue;
 
                     Vector3 parentSocketWorldDir = parentRoom.transform.TransformDirection(parentSocket.LocalDirection);
@@ -147,6 +205,21 @@ namespace ProceduralGeneration
                     
                     Vector3 offset = parentSocketWorldPos - childSocketWorldPos;
                     newRoom.transform.position += offset;
+
+                    // Calculate expected Y based on floor level
+                    float expectedChildY = (node.Floor - 1) * settings.FloorHeight;
+                    
+                    // Reject this socket pair if their vertical alignment contradicts the floor layout
+                    // i.e., childRoom's Y position after socket alignment is fundamentally different from its designated floor Y
+                    if (Mathf.Abs(newRoom.transform.position.y - expectedChildY) > 0.5f)
+                    {
+                        continue;
+                    }
+
+                    // Enforce strict multi-deck floor height separation
+                    Vector3 strictPos = newRoom.transform.position;
+                    strictPos.y = expectedChildY;
+                    newRoom.transform.position = strictPos;
 
                     if (!CheckCollision(newRoom))
                     {
@@ -167,7 +240,7 @@ namespace ProceduralGeneration
             return false;
         }
 
-        private bool CheckCollision(RoomDefinition newRoom)
+        private bool CheckCollision(RoomInstance newRoom)
         {
             // Force a minimum padding even if inspector is set to 0
             float padding = Mathf.Max(0.1f, settings.RoomPadding);
@@ -189,24 +262,24 @@ namespace ProceduralGeneration
             return false; // No collision
         }
 
-        private Bounds GetWorldBounds(RoomDefinition room, Vector3 shrinkVector)
+        private Bounds GetWorldBounds(RoomInstance room, Vector3 shrinkVector)
         {
             // Instead of just passing size, we create bounds with original size and center, 
             // then get the min and max points, transform them, and create a new bounds.
             // But since bounds are AABB, the easiest way is:
-            Vector3 center = room.transform.TransformPoint(room.RoomBounds.center);
-            Vector3 extents = room.RoomBounds.extents;
+            Vector3 center = room.transform.TransformPoint(room.Definition.RoomBounds.center);
+            Vector3 extents = room.Definition.RoomBounds.extents;
             
             // Transform all 8 corners of the local bounds to world space to get the true AABB
             Vector3[] corners = new Vector3[8];
-            corners[0] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(extents.x, extents.y, extents.z));
-            corners[1] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(extents.x, extents.y, -extents.z));
-            corners[2] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(extents.x, -extents.y, extents.z));
-            corners[3] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(extents.x, -extents.y, -extents.z));
-            corners[4] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(-extents.x, extents.y, extents.z));
-            corners[5] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(-extents.x, extents.y, -extents.z));
-            corners[6] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(-extents.x, -extents.y, extents.z));
-            corners[7] = room.transform.TransformPoint(room.RoomBounds.center + new Vector3(-extents.x, -extents.y, -extents.z));
+            corners[0] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(extents.x, extents.y, extents.z));
+            corners[1] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(extents.x, extents.y, -extents.z));
+            corners[2] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(extents.x, -extents.y, extents.z));
+            corners[3] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(extents.x, -extents.y, -extents.z));
+            corners[4] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(-extents.x, extents.y, extents.z));
+            corners[5] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(-extents.x, extents.y, -extents.z));
+            corners[6] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(-extents.x, -extents.y, extents.z));
+            corners[7] = room.transform.TransformPoint(room.Definition.RoomBounds.center + new Vector3(-extents.x, -extents.y, -extents.z));
 
             Bounds worldBounds = new Bounds(corners[0], Vector3.zero);
             for (int i = 1; i < 8; i++)

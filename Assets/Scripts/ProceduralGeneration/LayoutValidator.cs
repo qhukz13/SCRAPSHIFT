@@ -6,13 +6,13 @@ namespace ProceduralGeneration
 {
     public class LayoutValidator
     {
-        public bool Validate(List<RoomDefinition> placedRooms, ShipTemplate template)
+        public bool Validate(List<RoomInstance> placedRooms, ShipTemplate template)
         {
             if (placedRooms == null || placedRooms.Count == 0) return false;
 
-            bool hasSpawn = placedRooms.Any(r => r.RoomType == RoomType.Spawn);
-            bool hasReactor = placedRooms.Any(r => r.RoomType == RoomType.Reactor);
-            bool hasBridge = placedRooms.Any(r => r.RoomType == RoomType.Bridge);
+            bool hasSpawn = placedRooms.Any(r => r.Definition.RoomType == RoomType.Spawn);
+            bool hasReactor = placedRooms.Any(r => r.Definition.RoomType == RoomType.Reactor);
+            bool hasBridge = placedRooms.Any(r => r.Definition.RoomType == RoomType.Bridge);
 
             if (!hasSpawn || !hasReactor || !hasBridge)
             {

@@ -1,63 +1,98 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
 namespace ProceduralGeneration
 {
     public class DoorGenerator
     {
-        public void GenerateDoors(List<RoomDefinition> placedRooms, GameObject doorPrefab)
+        private class SocketData
+        {
+            public RoomInstance Room;
+            public DoorSocket Socket;
+            public Vector3 WorldPos;
+            public Quaternion WorldRot;
+        }
+
+        public void GenerateDoors(List<RoomInstance> placedRooms, GameObject doorPrefab)
         {
             if (doorPrefab == null)
             {
-                Debug.LogWarning("[DoorGenerator] DoorPrefab is missing. Skipping door generation.");
+                Debug.LogWarning("[DoorGenerator] DoorPrefab is not assigned.");
                 return;
             }
 
-            List<Vector3> processedPositions = new List<Vector3>();
-            float tolerance = 0.1f;
-            int doorsSpawned = 0;
+            List<SocketData> allSockets = new List<SocketData>();
 
             foreach (var room in placedRooms)
             {
-                foreach (var socket in room.DoorSockets)
+                foreach (var socket in room.Definition.DoorSockets)
                 {
-                    if (socket.IsUsed)
+                    // We only spawn doors on Wall sockets. Floors/Ceilings are for stairs/elevators.
+                    if (socket.IsUsed && socket.SocketType == SocketType.Wall)
                     {
-                        Vector3 worldPos = room.transform.TransformPoint(socket.LocalPosition);
-                        
-                        // Check if we already spawned a door here (from the other room's socket)
-                        bool alreadyProcessed = false;
-                        foreach (var pos in processedPositions)
+                        allSockets.Add(new SocketData
                         {
-                            if (Vector3.Distance(pos, worldPos) < tolerance)
-                            {
-                                alreadyProcessed = true;
-                                break;
-                            }
-                        }
-
-                        if (!alreadyProcessed)
-                        {
-                            Vector3 worldDir = room.transform.TransformDirection(socket.LocalDirection);
-                            Quaternion rotation = Quaternion.LookRotation(worldDir, Vector3.up);
-
-                            GameObject doorInst = Object.Instantiate(doorPrefab, worldPos, rotation);
-                            
-                            // Netcode requires the object to be spawned on the server
-                            var netObj = doorInst.GetComponent<Unity.Netcode.NetworkObject>();
-                            if (netObj != null)
-                            {
-                                netObj.Spawn();
-                            }
-                            
-                            processedPositions.Add(worldPos);
-                            doorsSpawned++;
-                        }
+                            Room = room,
+                            Socket = socket,
+                            WorldPos = room.transform.TransformPoint(socket.LocalPosition),
+                            WorldRot = room.transform.rotation * Quaternion.LookRotation(socket.LocalDirection)
+                        });
                     }
                 }
             }
 
-            Debug.Log($"[DoorGenerator] Spawned {doorsSpawned} doors across {placedRooms.Count} rooms.");
+            List<SocketData> processed = new List<SocketData>();
+            int doorsSpawned = 0;
+
+            foreach (var s1 in allSockets)
+            {
+                if (processed.Contains(s1)) continue;
+
+                // Find matching socket from another room within a small epsilon distance
+                SocketData s2 = allSockets.Find(s => s != s1 && !processed.Contains(s) && Vector3.Distance(s.WorldPos, s1.WorldPos) < 0.1f);
+
+                if (s2 != null)
+                {
+                    // Spawn ONE door between the two rooms
+                    GameObject doorObj = Object.Instantiate(doorPrefab, s1.WorldPos, s1.WorldRot);
+                    doorObj.name = $"Door_{s1.Room.name}_to_{s2.Room.name}";
+                    doorObj.transform.SetParent(s1.Room.transform);
+
+                    var doorController = doorObj.GetComponent<DoorController>();
+                    if (doorController == null) doorController = doorObj.AddComponent<DoorController>();
+
+                    doorController.Initialize(s1.Room, s2.Room);
+
+                    var netObj = doorObj.GetComponent<NetworkObject>();
+                    if (netObj != null) netObj.Spawn();
+
+                    processed.Add(s1);
+                    processed.Add(s2);
+                    doorsSpawned++;
+                }
+                else
+                {
+                    // If unmatched but marked used, it's either an error or an outer door (airlock).
+                    // We'll spawn a door anyway to seal the ship.
+                    GameObject doorObj = Object.Instantiate(doorPrefab, s1.WorldPos, s1.WorldRot);
+                    doorObj.name = $"Door_{s1.Room.name}_Airlock";
+                    doorObj.transform.SetParent(s1.Room.transform);
+
+                    var doorController = doorObj.GetComponent<DoorController>();
+                    if (doorController == null) doorController = doorObj.AddComponent<DoorController>();
+
+                    doorController.Initialize(s1.Room, null);
+
+                    var netObj = doorObj.GetComponent<NetworkObject>();
+                    if (netObj != null) netObj.Spawn();
+
+                    processed.Add(s1);
+                    doorsSpawned++;
+                }
+            }
+            
+            Debug.Log($"[DoorGenerator] Spawned {doorsSpawned} doors.");
         }
     }
 }

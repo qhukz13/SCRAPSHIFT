@@ -93,3 +93,13 @@ MonoBehaviour:
     MinimumDifficulty: 0
     MaximumDifficulty: 100
     ConnectionRules: 
+  - Prefab: {fileID: 5140777267560475354, guid: 3f032085dbd240e498183d677927e687, type: 3}
+    RoomType: 15
+    RoomCategory: 0
+    RoomTags: 0
+    DifficultyWeight: 1
+    SpawnWeight: 1
+    AllowedFloors: 0100000002000000
+    MinimumDifficulty: 0
+    MaximumDifficulty: 100
+    ConnectionRules: 

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShipName: Real Cargo Ship
   Difficulty: 1
-  NumberOfFloors: 1
+  NumberOfFloors: 2
   MinimumRooms: 5
   MaximumRooms: 30
   RequiredRooms: 0000000004000000

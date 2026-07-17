@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ProceduralGeneration
@@ -32,70 +33,129 @@ namespace ProceduralGeneration
             nextNodeId = 0;
         }
         
+        private int GetMaxSockets(RoomType type)
+        {
+            switch (type)
+            {
+                case RoomType.Reactor: return 8; // Central hub, many doors
+                case RoomType.Generator: return 2; // Often a pass-through
+                case RoomType.Crossroad: return 4;
+                // Stairs only have 2 sockets per floor. 1 is for parent, 1 is for the opposite floor.
+                // We must not allow random same-floor rooms to attach to Stairs, or it runs out of sockets.
+                case RoomType.Stairs: return 2; 
+                case RoomType.Corridor: return 2;
+                case RoomType.Spawn: return 1;
+                case RoomType.Bridge: return 1;
+                default: return 3; // Generic rooms can have up to 3 doors to allow organic branching
+            }
+        }
+
         public void GenerateFromTemplate(ShipTemplate template)
         {
             Clear();
             
-            // 1. Determine Spine Length
             int targetRooms = template.MaximumRooms;
-            int spineLength = Mathf.Clamp(targetRooms / 2, 3, 15);
             
-            RoomNode currentSpineNode = AddNode(RoomType.Spawn, 1);
-            List<RoomNode> spineNodes = new List<RoomNode>();
-            spineNodes.Add(currentSpineNode);
+            // 1. Create Central Hub (Reactor)
+            RoomNode reactorNode = AddNode(RoomType.Reactor, 1);
 
-            // Generate Spine
-            for (int i = 0; i < spineLength; i++)
+            int f1Length = Mathf.Clamp(targetRooms / 4, 2, 6);
+            
+            // 2. Generate Floor 1 Spine (towards Spawn)
+            RoomNode currentF1 = reactorNode;
+            for (int i = 0; i < f1Length; i++)
             {
-                // Mostly Corridors, occasionally Crossroads
-                RoomType spineType = (i % 3 == 0 && i > 0) ? RoomType.Crossroad : RoomType.Corridor;
-                currentSpineNode = AddNode(spineType, 1, currentSpineNode);
-                spineNodes.Add(currentSpineNode);
+                RoomType type = (i % 2 == 0) ? RoomType.Corridor : RoomType.Crossroad;
+                currentF1 = AddNode(type, 1, currentF1);
+            }
+            AddNode(RoomType.Spawn, 1, currentF1);
+
+            // 3. Generate Floor 2 Spine (towards Bridge) OR alternative Floor 1 Spine
+            RoomNode currentF2 = reactorNode;
+            int floor2 = template.NumberOfFloors > 1 ? 2 : 1;
+            
+            for (int i = 0; i < f1Length; i++)
+            {
+                RoomType type = (i % 2 == 0) ? RoomType.Corridor : RoomType.Crossroad;
+                currentF2 = AddNode(type, floor2, currentF2);
+            }
+            AddNode(RoomType.Bridge, floor2, currentF2);
+
+            // Calculate free sockets for each node
+            Dictionary<RoomNode, int> freeSockets = new Dictionary<RoomNode, int>();
+            foreach (var node in nodes)
+            {
+                int used = node.ConnectedNodes.Count;
+                freeSockets[node] = GetMaxSockets(node.RoomType) - used;
             }
 
-            // Put Bridge at the end
-            RoomNode bridgeNode = AddNode(RoomType.Bridge, 1, currentSpineNode);
-            spineNodes.Add(bridgeNode);
+            // 4. Add Stairs if multi-floor
+            if (template.NumberOfFloors > 1)
+            {
+                int numStairs = UnityEngine.Random.Range(2, 4); // 2 or 3 stairs
+                for (int s = 0; s < numStairs; s++)
+                {
+                    var f1Candidates = nodes.Where(n => n.Floor == 1 && freeSockets.ContainsKey(n) && freeSockets[n] > 0).ToList();
+                    if (f1Candidates.Count == 0) break;
+                    
+                    RoomNode stairParent = f1Candidates[UnityEngine.Random.Range(0, f1Candidates.Count)];
+                    RoomNode stairNode = AddNode(RoomType.Stairs, 1, stairParent);
+                    freeSockets[stairParent]--;
+                    
+                    // Exit on Floor 2
+                    RoomNode f2Exit = AddNode(RoomType.Corridor, 2, stairNode);
+                    freeSockets[stairNode] = 0; // Stairs only have 2 sockets total (1 bottom, 1 top), both are now used
+                    freeSockets[f2Exit] = GetMaxSockets(RoomType.Corridor) - 1;
+                }
+            }
 
-            // 2. We need Generator and Reactor. We'll attach them to the middle of the spine.
-            RoomNode genAttach = spineNodes[Mathf.Max(1, spineNodes.Count / 3)];
-            RoomNode reactorAttach = spineNodes[Mathf.Max(1, (spineNodes.Count * 2) / 3)];
-            
-            AddNode(RoomType.Generator, 1, genAttach);
-            AddNode(RoomType.Reactor, 1, reactorAttach);
-
-            // 3. Attach other required rooms to the spine
-            List<RoomType> placedReqTypes = new List<RoomType> { RoomType.Spawn, RoomType.Bridge, RoomType.Generator, RoomType.Reactor, RoomType.Corridor, RoomType.Crossroad };
+            // 5. Attach other required rooms
+            List<RoomType> placedReqTypes = new List<RoomType> { RoomType.Spawn, RoomType.Bridge, RoomType.Generator, RoomType.Reactor, RoomType.Corridor, RoomType.Crossroad, RoomType.Stairs };
             foreach (var reqType in template.RequiredRooms)
             {
                 if (placedReqTypes.Contains(reqType)) continue;
-                RoomNode randomSpine = spineNodes[UnityEngine.Random.Range(1, spineNodes.Count - 1)];
-                AddNode(reqType, 1, randomSpine);
+                
+                var availablePoints = nodes.Where(n => freeSockets[n] > 0).ToList();
+                if (availablePoints.Count == 0) break;
+                
+                var branchPoint = availablePoints[UnityEngine.Random.Range(0, availablePoints.Count)];
+                var newNode = AddNode(reqType, branchPoint.Floor, branchPoint);
+                freeSockets[branchPoint]--;
+                freeSockets[newNode] = GetMaxSockets(newNode.RoomType) - 1;
                 placedReqTypes.Add(reqType);
             }
 
-            // 4. Fill remaining capacity with Optional Rooms attached to the spine
-            int currentRooms = nodes.Count;
-            List<RoomNode> branchPoints = new List<RoomNode>(spineNodes);
-            // Don't branch from spawn or bridge
-            branchPoints.Remove(spineNodes[0]);
-            branchPoints.Remove(bridgeNode);
+            // Ensure Generator is placed
+            if (!placedReqTypes.Contains(RoomType.Generator))
+            {
+                var availablePoints = nodes.Where(n => freeSockets[n] > 0).ToList();
+                if (availablePoints.Count > 0)
+                {
+                    var branchPoint = availablePoints[UnityEngine.Random.Range(0, availablePoints.Count)];
+                    var genNode = AddNode(RoomType.Generator, branchPoint.Floor, branchPoint);
+                    freeSockets[branchPoint]--;
+                    freeSockets[genNode] = GetMaxSockets(genNode.RoomType) - 1;
+                }
+            }
 
+            // 6. Fill remaining capacity with Optional Rooms
+            int currentRooms = nodes.Count;
             while (currentRooms < targetRooms && template.OptionalRooms.Count > 0)
             {
+                var availablePoints = nodes.Where(n => freeSockets[n] > 0).ToList();
+                if (availablePoints.Count == 0) break; // Cannot grow anymore
+                
                 var randomOpt = template.OptionalRooms[UnityEngine.Random.Range(0, template.OptionalRooms.Count)];
+                var branchPoint = availablePoints[UnityEngine.Random.Range(0, availablePoints.Count)];
                 
-                RoomNode branchPoint = branchPoints[UnityEngine.Random.Range(0, branchPoints.Count)];
-                RoomNode newNode = AddNode(randomOpt.RoomType, 1, branchPoint);
-                
-                // Allow branching off new corridors to create depth, but limit it
-                if (randomOpt.RoomType == RoomType.Corridor || randomOpt.RoomType == RoomType.Crossroad)
-                {
-                    branchPoints.Add(newNode);
-                }
+                var newNode = AddNode(randomOpt.RoomType, branchPoint.Floor, branchPoint);
+                freeSockets[branchPoint]--;
+                freeSockets[newNode] = GetMaxSockets(newNode.RoomType) - 1;
                 
                 currentRooms++;
             }
         }
+
+
     }
 }

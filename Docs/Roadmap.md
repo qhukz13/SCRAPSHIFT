@@ -9,7 +9,7 @@ The development of SCRAPSHIFT is divided into the following phases:
 - [x] Foundational Win/Lose logic
 
 ## Current High Priority
-- [ ] **Pipe Replacement:** Replace the current placeholder pipes for the generator and reactor with existing pipe prefabs.
+- [ ] **Prefab Replacement:** Replace the current placeholder pipes, generator and reactor with existing prefabs.
 - [ ] **Second Floor & Ladders:** Add a ladder prefab and begin implementing generation for the second floor.
 - [ ] **Random Item Spawns:** Implement random item spawning in the location (starting with the wrench for pipe repair).
 - [ ] **Fix Player Spawning:** Players are still occasionally spawning outside the generated ship layout. (Needs investigation into teleport timing or Room_Spawn bounds).

@@ -9,6 +9,7 @@ using SpaceMaintenance.Core;
 using SpaceMaintenance.Player.States;
 
 using Unity.Netcode;
+using UnityEngine.SceneManagement;
 
 namespace SpaceMaintenance.Player
 {
@@ -80,17 +81,43 @@ namespace SpaceMaintenance.Player
             CarryingState = new PlayerCarryingState(this);
         }
 
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner)
+            {
+                SceneManager.sceneLoaded -= OnSceneLoaded;
+            }
+            base.OnNetworkDespawn();
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            DisableSceneCamera();
+            
+            // Re-lock cursor in case a UI from the previous scene left it unlocked
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        private void DisableSceneCamera()
+        {
+            // Disable any camera tagged as MainCamera that isn't ours
+            foreach (var cam in FindObjectsOfType<Camera>())
+            {
+                if (cam.CompareTag("MainCamera") && cam.gameObject != CameraController.gameObject)
+                {
+                    cam.gameObject.SetActive(false);
+                }
+            }
+        }
+
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
             {
                 CameraController.Initialize(Input, Config);
                 
-                // Disable the default scene camera if it exists
-                if (Camera.main != null && Camera.main.gameObject != CameraController.gameObject)
-                {
-                    Camera.main.gameObject.SetActive(false);
-                }
+                DisableSceneCamera();
+                SceneManager.sceneLoaded += OnSceneLoaded;
             }
             else
             {
