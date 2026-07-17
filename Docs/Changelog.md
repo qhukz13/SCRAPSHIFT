@@ -21,6 +21,9 @@ All notable changes to this project will be documented in this file.
 ### Added — Procedural Generation & Minigames
 - **ShipBlockoutGenerator:** Added a Subtractive BSP generator to instantly create dense, multi-room ship layouts (walls, floors, corridors, reactor room). Can be run in editor via ContextMenu.
 - **PipeAlignMinigame:** Added a new repair minigame where the player must click to rotate pipe segments on a grid to restore flow.
+- **Advanced RoomPlacer Logic:** Rewrote multi-floor generation to independently spawn fully connected floor clusters, then dynamically "inject" 4-6 stairs by scanning 3D spatial overlap.
+- **Dynamic Doorway Merging:** Implemented intelligent wall removal for large rooms; if adjacent sockets connect to the exact same room, `RoomPlacer` removes the middle pillar, creating a seamless double-wide 8-meter doorway.
+- **Balanced Floor Distribution:** `RoomGraph` now accurately balances required and optional room spawning between Floor 1 and Floor 2, guaranteeing large, highly overlapping multi-deck ships.
 ### Added — Dark Ship Mission Flow
 - **MissionFlowController:** New `NetworkBehaviour` managing mission phases (`DarkShip → ReactorStartup → Active → Completed/Failed`). Listens to `ReactorStateChangedEvent` to drive transitions.
 - **MissionPhaseChangedEvent:** New event published on every phase transition for HUD, Chaos, and other systems to react.
