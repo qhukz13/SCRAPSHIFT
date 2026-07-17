@@ -37,10 +37,7 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
   - **SequenceInputMinigame** — third minigame (repeat a sequence of buttons).
   - **PressureBalanceMinigame** — fourth minigame (adjust 3 valves to stabilize pressure).
   - **CircuitTraceMinigame** — fifth minigame (connect nodes on a grid without crossing).
-- **Procedural Generation (V1):** Added `ShipBlockoutGenerator` that uses Subtractive BSP to generate dense, multi-room ship layouts instantly. (Deprecated Prototype)
-- **Procedural Generation (V2):** Fully functional prefab-based ship generation using a 14-stage pipeline. Features a robust Backtracking DFS (`Depth First Search`) algorithm for room placement, which guarantees overlap-free layouts by prioritizing "straight ahead" sockets to build logical, linear ship spines with side rooms branching off. Includes advanced multi-floor logic where floors are generated independently and connected via mathematically aligned dynamic stairs in overlapping areas. Also features dynamic doorway merging to seamlessly combine adjacent connections into wide arches.
-- **Random Item Spawning:** Network-synced `ItemSpawner` automatically distributes items (like wrenches and scrap) across procedurally generated rooms once generation is complete, fully supporting both V1 and V2 generation systems.
-- **Developer Console:** Global singleton toggled with \` that provides `noclip`, `thirdperson`, `godmode`, and `heal` commands for rapid playtesting. Automatically initializes on game load.
+- **Procedural Generation (V3) [STABLE BASELINE]:** Полностью функциональная многопалубная генерация кораблей. Использует улучшенный алгоритм Backtracking DFS для логической компоновки `RoomGraph` и параллельного роста этажей от общих узлов. Включает динамическое врезание лестниц в 3D пространстве для соединения пересекающихся этажей и автоматическое слияние смежных дверных проемов в широкие арки. Работает стабильно, дальнейшие игровые механики строятся поверх этой архитектуры.
 
 ## Done
 - [x] Integrate minigame UI prefab (WireConnect) into `Generator` and implement `IMinigameRepairable`.
