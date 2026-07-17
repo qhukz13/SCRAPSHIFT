@@ -25,12 +25,18 @@ namespace SpaceMaintenance.Player
 
             if (_input.InteractInput)
             {
-                if (_detector != null && _detector.CurrentInteractable != null)
+                try
                 {
-                    _detector.CurrentInteractable.OnInteract(gameObject);
+                    if (_detector != null && _detector.CurrentInteractable != null)
+                    {
+                        _detector.CurrentInteractable.OnInteract(gameObject);
+                    }
                 }
-                // Always consume the input to prevent it from sticking
-                _input.ConsumeInteractInput();
+                finally
+                {
+                    // Always consume the input to prevent it from sticking
+                    _input.ConsumeInteractInput();
+                }
             }
         }
     }

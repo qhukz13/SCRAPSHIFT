@@ -38,7 +38,7 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
   - **PressureBalanceMinigame** — fourth minigame (adjust 3 valves to stabilize pressure).
   - **CircuitTraceMinigame** — fifth minigame (connect nodes on a grid without crossing).
 - **Procedural Generation (V1):** Added `ShipBlockoutGenerator` that uses Subtractive BSP to generate dense, multi-room ship layouts instantly. (Deprecated Prototype)
-- **Procedural Generation (V2):** Established data-driven architecture (`RoomType`, `RoomCategory`, `RoomTags`, `ShipTemplate`, `RoomDatabase`) and the 14-stage pipeline for prefab-based ship generation. Implementation of the logic graph and physical placement is pending.
+- **Procedural Generation (V2):** Fully functional prefab-based ship generation using a 14-stage pipeline. Features a robust Backtracking DFS (`Depth First Search`) algorithm for room placement, which guarantees overlap-free layouts by prioritizing "straight ahead" sockets to build logical, linear ship spines with side rooms branching off.
 - **Random Item Spawning:** Network-synced `ItemSpawner` automatically distributes items (like wrenches and scrap) across procedurally generated rooms once generation is complete, fully supporting both V1 and V2 generation systems.
 - **Developer Console:** Global singleton toggled with \` that provides `noclip`, `thirdperson`, `godmode`, and `heal` commands for rapid playtesting. Automatically initializes on game load.
 

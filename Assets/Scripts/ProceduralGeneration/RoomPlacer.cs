@@ -27,65 +27,34 @@ namespace ProceduralGeneration
             var nodes = graph.GetNodes();
             if (nodes.Count == 0) return false;
 
-            // Sort nodes by depth to ensure we build outwards
             var sortedNodes = nodes.OrderBy(n => n.Depth).ToList();
-
-            // Store mapping from Node to instantiated Room
             Dictionary<RoomNode, RoomDefinition> nodeToRoom = new Dictionary<RoomNode, RoomDefinition>();
 
+            // 1. Instantiate all prefabs at origin
             foreach (var node in sortedNodes)
             {
-                // Find matching prefab
                 var prefabEntry = roomDatabase.Rooms.FirstOrDefault(r => r.RoomType == node.RoomType);
                 if (prefabEntry == null || prefabEntry.Prefab == null)
                 {
                     Debug.LogError($"[RoomPlacer] No prefab found for {node.RoomType}");
+                    Cleanup(nodeToRoom);
                     return false;
                 }
 
                 RoomDefinition roomInstance = Object.Instantiate(prefabEntry.Prefab, shipRoot);
                 roomInstance.name = $"{node.RoomType}_{node.NodeID}";
-
-                if (node.ParentNode == null)
-                {
-                    // This is the Spawn / Root node
-                    roomInstance.transform.localPosition = Vector3.zero;
-                    roomInstance.transform.localRotation = Quaternion.identity;
-                }
-                else
-                {
-                    // Find the physical room for the parent node
-                    if (!nodeToRoom.TryGetValue(node.ParentNode, out RoomDefinition parentRoom))
-                    {
-                        Debug.LogError($"[RoomPlacer] Parent room not instantiated yet for node {node.NodeID}");
-                        Object.Destroy(roomInstance.gameObject);
-                        return false;
-                    }
-
-                    bool placedSuccessfully = TryPlaceRoom(roomInstance, parentRoom);
-                    
-                    if (!placedSuccessfully)
-                    {
-                        Debug.LogWarning($"[RoomPlacer] Could not fit room {node.RoomType} without overlapping. Backtracking logic needed.");
-                        Object.Destroy(roomInstance.gameObject);
-                        
-                        // We must destroy already placed rooms to avoid leaving ghostly colliders
-                        foreach (var r in placed)
-                        {
-                            if (r != null) Object.Destroy(r.gameObject);
-                        }
-                        placed.Clear();
-                        
-                        return false; // Very simple fail state for now
-                    }
-                }
-
-                placed.Add(roomInstance);
                 nodeToRoom[node] = roomInstance;
             }
 
-            ProcessWallPlugs();
+            // 2. Perform Backtracking DFS to find a valid layout
+            if (!DFS(0, sortedNodes, nodeToRoom))
+            {
+                Debug.LogError("[RoomPlacer] Mathematical layout failed. No valid non-overlapping configuration found.");
+                Cleanup(nodeToRoom);
+                return false;
+            }
 
+            ProcessWallPlugs();
             placedRooms.AddRange(placed);
             return true;
         }
@@ -118,45 +87,83 @@ namespace ProceduralGeneration
             }
         }
 
-        private bool TryPlaceRoom(RoomDefinition newRoom, RoomDefinition parentRoom)
+        private void Cleanup(Dictionary<RoomNode, RoomDefinition> nodeToRoom)
         {
-            // Simple placement logic: try all unused sockets on parent and all unused sockets on new room
-            foreach (var parentSocket in parentRoom.DoorSockets)
+            foreach (var kvp in nodeToRoom)
             {
-                // Skip if already connected
+                if (kvp.Value != null) Object.Destroy(kvp.Value.gameObject);
+            }
+            nodeToRoom.Clear();
+            placed.Clear();
+        }
+
+        private bool DFS(int index, List<RoomNode> sortedNodes, Dictionary<RoomNode, RoomDefinition> nodeToRoom)
+        {
+            if (index >= sortedNodes.Count) return true; // All placed!
+
+            var node = sortedNodes[index];
+            var newRoom = nodeToRoom[node];
+
+            if (node.ParentNode == null)
+            {
+                newRoom.transform.localPosition = Vector3.zero;
+                newRoom.transform.localRotation = Quaternion.identity;
+                placed.Add(newRoom);
+
+                if (DFS(index + 1, sortedNodes, nodeToRoom)) return true;
+
+                placed.Remove(newRoom);
+                return false;
+            }
+
+            var parentRoom = nodeToRoom[node.ParentNode];
+            
+            // Prioritize Forward sockets to make the ship linear and logical
+            var parentSockets = parentRoom.DoorSockets.OrderBy(s => 
+            {
+                Vector3 worldDir = parentRoom.transform.TransformDirection(s.LocalDirection);
+                float alignment = Vector3.Dot(worldDir, parentRoom.transform.forward);
+                return -alignment + (UnityEngine.Random.value * 0.1f);
+            }).ToList();
+
+            var childSockets = newRoom.DoorSockets.OrderBy(s => UnityEngine.Random.value).ToList();
+
+            foreach (var parentSocket in parentSockets)
+            {
                 if (parentSocket.IsUsed) continue;
 
-                foreach (var childSocket in newRoom.DoorSockets)
+                foreach (var childSocket in childSockets)
                 {
                     if (childSocket.IsUsed) continue;
 
-                    // Calculate rotation to make child socket face opposite of parent socket
                     Vector3 parentSocketWorldDir = parentRoom.transform.TransformDirection(parentSocket.LocalDirection);
                     Vector3 targetChildDir = -parentSocketWorldDir;
                     
-                    // targetChildDir is already in world space, so we just need a rotation that transforms local childSocket to world targetChildDir.
-                    // We must only rotate around the Y axis to keep the room upright.
                     float angle = Vector3.SignedAngle(childSocket.LocalDirection, targetChildDir, Vector3.up);
                     newRoom.transform.rotation = Quaternion.Euler(0, angle, 0);
 
-                    // Calculate position
                     Vector3 parentSocketWorldPos = parentRoom.transform.TransformPoint(parentSocket.LocalPosition);
                     Vector3 childSocketWorldPos = newRoom.transform.TransformPoint(childSocket.LocalPosition);
                     
                     Vector3 offset = parentSocketWorldPos - childSocketWorldPos;
                     newRoom.transform.position += offset;
 
-                    // Check bounds collision mathematically
                     if (!CheckCollision(newRoom))
                     {
-                        // Mark both sockets as used
                         parentSocket.IsUsed = true;
                         childSocket.IsUsed = true;
-                        return true; // Successfully placed
+                        placed.Add(newRoom);
+
+                        if (DFS(index + 1, sortedNodes, nodeToRoom)) return true;
+
+                        // Backtrack
+                        placed.Remove(newRoom);
+                        parentSocket.IsUsed = false;
+                        childSocket.IsUsed = false;
                     }
                 }
             }
-            
+
             return false;
         }
 

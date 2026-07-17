@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.ivanmurzak.unity.mcp": "0.84.2",
+    "com.ivanmurzak.unity.mcp": "0.84.3",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.ai.assistant": "2.14.0-pre.1",
     "com.unity.ai.inference": "2.6.1",

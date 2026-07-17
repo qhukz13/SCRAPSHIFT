@@ -16,15 +16,19 @@ MonoBehaviour:
   Difficulty: 1
   NumberOfFloors: 1
   MinimumRooms: 5
-  MaximumRooms: 15
+  MaximumRooms: 30
   RequiredRooms: 0000000004000000
   OptionalRooms:
-  - RoomType: 2
-    MinCount: 2
-    MaxCount: 6
-    SpawnWeight: 0
   - RoomType: 9
+    MinCount: 3
+    MaxCount: 6
+    SpawnWeight: 1
+  - RoomType: 10
+    MinCount: 3
+    MaxCount: 6
+    SpawnWeight: 1
+  - RoomType: 3
     MinCount: 2
     MaxCount: 5
-    SpawnWeight: 0
+    SpawnWeight: 1
   GenerationRules: []

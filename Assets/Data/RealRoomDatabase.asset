@@ -34,7 +34,7 @@ MonoBehaviour:
     MaximumDifficulty: 100
     ConnectionRules: 
   - Prefab: {fileID: -5758658815635692464, guid: 5e1cd88185c5a2742b0a7bdac5faf1d8, type: 3}
-    RoomType: 2
+    RoomType: 9
     RoomCategory: 0
     RoomTags: 0
     DifficultyWeight: 1
@@ -64,7 +64,7 @@ MonoBehaviour:
     MaximumDifficulty: 100
     ConnectionRules: 
   - Prefab: {fileID: 5370182254400788424, guid: ba237fb4cbdb259438fb91b4e3f972bd, type: 3}
-    RoomType: 2
+    RoomType: 10
     RoomCategory: 0
     RoomTags: 0
     DifficultyWeight: 1

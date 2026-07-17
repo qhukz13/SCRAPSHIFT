@@ -36,43 +36,64 @@ namespace ProceduralGeneration
         {
             Clear();
             
-            // Generate basic Main Path: Spawn -> Corridor -> Reactor -> Corridor -> Bridge
-            RoomNode spawnNode = AddNode(RoomType.Spawn, 1);
-            RoomNode curr = spawnNode;
+            // 1. Determine Spine Length
+            int targetRooms = template.MaximumRooms;
+            int spineLength = Mathf.Clamp(targetRooms / 2, 3, 15);
             
-            // Very simple graph for now to ensure path
-            curr = AddNode(RoomType.Corridor, 1, curr);
-            curr = AddNode(RoomType.Crossroad, 1, curr);
+            RoomNode currentSpineNode = AddNode(RoomType.Spawn, 1);
+            List<RoomNode> spineNodes = new List<RoomNode>();
+            spineNodes.Add(currentSpineNode);
+
+            // Generate Spine
+            for (int i = 0; i < spineLength; i++)
+            {
+                // Mostly Corridors, occasionally Crossroads
+                RoomType spineType = (i % 3 == 0 && i > 0) ? RoomType.Crossroad : RoomType.Corridor;
+                currentSpineNode = AddNode(spineType, 1, currentSpineNode);
+                spineNodes.Add(currentSpineNode);
+            }
+
+            // Put Bridge at the end
+            RoomNode bridgeNode = AddNode(RoomType.Bridge, 1, currentSpineNode);
+            spineNodes.Add(bridgeNode);
+
+            // 2. We need Generator and Reactor. We'll attach them to the middle of the spine.
+            RoomNode genAttach = spineNodes[Mathf.Max(1, spineNodes.Count / 3)];
+            RoomNode reactorAttach = spineNodes[Mathf.Max(1, (spineNodes.Count * 2) / 3)];
             
-            RoomNode crossroad = curr;
-            
-            curr = AddNode(RoomType.Corridor, 1, crossroad);
-            RoomNode reactorNode = AddNode(RoomType.Reactor, 1, curr);
-            curr = reactorNode;
-            
-            curr = AddNode(RoomType.Corridor, 1, crossroad);
-            curr = AddNode(RoomType.Bridge, 1, curr);
-            
-            // Attach a Generator to the Reactor
-            AddNode(RoomType.Generator, 1, reactorNode);
-            
-            
-            // Add Required Rooms
+            AddNode(RoomType.Generator, 1, genAttach);
+            AddNode(RoomType.Reactor, 1, reactorAttach);
+
+            // 3. Attach other required rooms to the spine
+            List<RoomType> placedReqTypes = new List<RoomType> { RoomType.Spawn, RoomType.Bridge, RoomType.Generator, RoomType.Reactor, RoomType.Corridor, RoomType.Crossroad };
             foreach (var reqType in template.RequiredRooms)
             {
-                if (reqType == RoomType.Spawn || reqType == RoomType.Reactor || reqType == RoomType.Bridge)
-                    continue; // already added manually above for guaranteed path
-                    
-                // Attach to crossroad for now
-                AddNode(reqType, 1, crossroad);
+                if (placedReqTypes.Contains(reqType)) continue;
+                RoomNode randomSpine = spineNodes[UnityEngine.Random.Range(1, spineNodes.Count - 1)];
+                AddNode(reqType, 1, randomSpine);
+                placedReqTypes.Add(reqType);
             }
-            
-            // Add optional rooms until MinRooms
+
+            // 4. Fill remaining capacity with Optional Rooms attached to the spine
             int currentRooms = nodes.Count;
-            while (currentRooms < template.MinimumRooms && template.OptionalRooms.Count > 0)
+            List<RoomNode> branchPoints = new List<RoomNode>(spineNodes);
+            // Don't branch from spawn or bridge
+            branchPoints.Remove(spineNodes[0]);
+            branchPoints.Remove(bridgeNode);
+
+            while (currentRooms < targetRooms && template.OptionalRooms.Count > 0)
             {
                 var randomOpt = template.OptionalRooms[UnityEngine.Random.Range(0, template.OptionalRooms.Count)];
-                AddNode(randomOpt.RoomType, 1, crossroad);
+                
+                RoomNode branchPoint = branchPoints[UnityEngine.Random.Range(0, branchPoints.Count)];
+                RoomNode newNode = AddNode(randomOpt.RoomType, 1, branchPoint);
+                
+                // Allow branching off new corridors to create depth, but limit it
+                if (randomOpt.RoomType == RoomType.Corridor || randomOpt.RoomType == RoomType.Crossroad)
+                {
+                    branchPoints.Add(newNode);
+                }
+                
                 currentRooms++;
             }
         }

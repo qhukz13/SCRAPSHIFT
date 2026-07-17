@@ -299,6 +299,8 @@ namespace SpaceMaintenance.ShipSystems
 
         public void OnInteract(GameObject player)
         {
+            if (!IsSpawned) return;
+
             if (!IsServer)
             {
                 RequestInteractServerRpc();

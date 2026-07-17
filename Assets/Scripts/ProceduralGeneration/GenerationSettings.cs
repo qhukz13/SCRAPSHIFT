@@ -11,7 +11,7 @@ namespace ProceduralGeneration
         
         [Header("Limits")]
         public int MaxRetriesPerRoom = 10;
-        public int MaxGraphGenerationRetries = 5;
+        public int MaxGraphGenerationRetries = 50;
         
         [Header("Physical Spacing")]
         public float RoomPadding = 0.1f;

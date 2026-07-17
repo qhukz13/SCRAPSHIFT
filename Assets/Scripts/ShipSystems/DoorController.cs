@@ -187,6 +187,7 @@ namespace SpaceMaintenance.ShipSystems
 
         public void OnInteract(GameObject player)
         {
+            if (!IsSpawned) return;
             if (RequiresHold) return; // Must hold for unpowered / locked
             if (!IsServer)
             {
@@ -198,6 +199,7 @@ namespace SpaceMaintenance.ShipSystems
 
         public void OnInteractHold(GameObject player, float holdTime)
         {
+            if (!IsSpawned) return;
             if (!RequiresHold || State.Value == DoorState.Broken) return;
 
             if (holdTime >= HoldDuration)

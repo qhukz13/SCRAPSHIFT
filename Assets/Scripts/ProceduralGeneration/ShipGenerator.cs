@@ -25,6 +25,7 @@ namespace ProceduralGeneration
         [Header("Gameplay Prefabs")]
         public GameObject ReactorPrefab;
         public GameObject GeneratorPrefab;
+        public GameObject DoorPrefab;
 
         private RoomGraph currentGraph;
         private List<RoomDefinition> placedRooms;
@@ -58,7 +59,7 @@ namespace ProceduralGeneration
                 {
                     // 6. Generate Doors
                     DoorGenerator doorGen = new DoorGenerator();
-                    doorGen.GenerateDoors(placedRooms);
+                    doorGen.GenerateDoors(placedRooms, DoorPrefab);
 
                     // 7. Generate Stairs
                     StairGenerator stairGen = new StairGenerator();
@@ -113,9 +114,22 @@ namespace ProceduralGeneration
             var reactorRoom = placedRooms.Find(r => r.RoomType == RoomType.Reactor);
             if (reactorRoom != null && ReactorPrefab != null)
             {
-                // Place reactor at room center or a bit above floor
+                // Try to use a designed interaction point
                 Vector3 reactorPos = reactorRoom.transform.position + Vector3.up * 1f;
-                GameObject reactorObj = Instantiate(ReactorPrefab, reactorPos, Quaternion.identity, reactorRoom.transform);
+                Quaternion reactorRot = Quaternion.identity;
+
+                if (reactorRoom.RepairPoints != null && reactorRoom.RepairPoints.Count > 0 && reactorRoom.RepairPoints[0] != null)
+                {
+                    reactorPos = reactorRoom.RepairPoints[0].position;
+                    reactorRot = reactorRoom.RepairPoints[0].rotation;
+                }
+                else if (reactorRoom.SpawnPoints != null && reactorRoom.SpawnPoints.Count > 0 && reactorRoom.SpawnPoints[0] != null)
+                {
+                    reactorPos = reactorRoom.SpawnPoints[0].position;
+                    reactorRot = reactorRoom.SpawnPoints[0].rotation;
+                }
+
+                GameObject reactorObj = Instantiate(ReactorPrefab, reactorPos, reactorRot, reactorRoom.transform);
                 var netObj = reactorObj.GetComponent<NetworkObject>();
                 if (netObj != null) netObj.Spawn();
             }
@@ -127,20 +141,36 @@ namespace ProceduralGeneration
                 // Calculate number of generators: 2 to 4 based on difficulty
                 int numGenerators = Mathf.Clamp(Mathf.RoundToInt(2 + (Template.Difficulty - 1)), 2, 4);
                 
-                // Simple layout: spread them out slightly
-                for (int i = 0; i < numGenerators; i++)
+                if (generatorRoom.RepairPoints != null && generatorRoom.RepairPoints.Count > 0)
                 {
-                    Vector3 offset = new Vector3(
-                        (i % 2 == 0 ? -2f : 2f),
-                        1f,
-                        (i < 2 ? -2f : 2f)
-                    );
-                    
-                    // Add slight rotation or positional jitter if desired, but keep it simple
-                    Vector3 genPos = generatorRoom.transform.TransformPoint(offset);
-                    GameObject genObj = Instantiate(GeneratorPrefab, genPos, Quaternion.identity, generatorRoom.transform);
-                    var netObj = genObj.GetComponent<NetworkObject>();
-                    if (netObj != null) netObj.Spawn();
+                    for (int i = 0; i < numGenerators; i++)
+                    {
+                        // Wrap around if we don't have enough points
+                        var point = generatorRoom.RepairPoints[i % generatorRoom.RepairPoints.Count];
+                        // If wrapping, apply a small offset to prevent exact Z-fighting/overlapping
+                        Vector3 pos = point.position + (i >= generatorRoom.RepairPoints.Count ? new Vector3(0, 0, (i / generatorRoom.RepairPoints.Count) * 2f) : Vector3.zero);
+                        
+                        GameObject genObj = Instantiate(GeneratorPrefab, pos, point.rotation, generatorRoom.transform);
+                        var netObj = genObj.GetComponent<NetworkObject>();
+                        if (netObj != null) netObj.Spawn();
+                    }
+                }
+                else
+                {
+                    // Fallback Simple layout: spread them out slightly
+                    for (int i = 0; i < numGenerators; i++)
+                    {
+                        Vector3 offset = new Vector3(
+                            (i % 2 == 0 ? -2f : 2f),
+                            1f,
+                            (i < 2 ? -2f : 2f)
+                        );
+                        
+                        Vector3 genPos = generatorRoom.transform.TransformPoint(offset);
+                        GameObject genObj = Instantiate(GeneratorPrefab, genPos, Quaternion.identity, generatorRoom.transform);
+                        var netObj = genObj.GetComponent<NetworkObject>();
+                        if (netObj != null) netObj.Spawn();
+                    }
                 }
             }
         }
@@ -170,7 +200,9 @@ namespace ProceduralGeneration
                 var playerObj = client.PlayerObject;
                 if (playerObj != null)
                 {
-                    // For NGO, disabling the CharacterController or Rigidbody temporarily during teleport can prevent physics issues.
+                    var cc = playerObj.GetComponent<CharacterController>();
+                    if (cc != null) cc.enabled = false;
+
                     var rb = playerObj.GetComponent<Rigidbody>();
                     if (rb != null)
                     {
@@ -178,6 +210,8 @@ namespace ProceduralGeneration
                         rb.linearVelocity = Vector3.zero;
                     }
                     playerObj.transform.position = spawnPos;
+
+                    if (cc != null) cc.enabled = true;
                 }
             }
         }
