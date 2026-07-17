@@ -89,28 +89,11 @@ namespace ProceduralGeneration
                 freeSockets[node] = GetMaxSockets(node.RoomType) - used;
             }
 
-            // 4. Add Stairs if multi-floor
-            if (template.NumberOfFloors > 1)
-            {
-                int numStairs = UnityEngine.Random.Range(2, 4); // 2 or 3 stairs
-                for (int s = 0; s < numStairs; s++)
-                {
-                    var f1Candidates = nodes.Where(n => n.Floor == 1 && freeSockets.ContainsKey(n) && freeSockets[n] > 0).ToList();
-                    if (f1Candidates.Count == 0) break;
-                    
-                    RoomNode stairParent = f1Candidates[UnityEngine.Random.Range(0, f1Candidates.Count)];
-                    RoomNode stairNode = AddNode(RoomType.Stairs, 1, stairParent);
-                    freeSockets[stairParent]--;
-                    
-                    // Exit on Floor 2
-                    RoomNode f2Exit = AddNode(RoomType.Corridor, 2, stairNode);
-                    freeSockets[stairNode] = 0; // Stairs only have 2 sockets total (1 bottom, 1 top), both are now used
-                    freeSockets[f2Exit] = GetMaxSockets(RoomType.Corridor) - 1;
-                }
-            }
+            // 4. (Stairs are now dynamically placed by RoomPlacer as cycles between F1 and F2)
 
             // 5. Attach other required rooms
             List<RoomType> placedReqTypes = new List<RoomType> { RoomType.Spawn, RoomType.Bridge, RoomType.Generator, RoomType.Reactor, RoomType.Corridor, RoomType.Crossroad, RoomType.Stairs };
+            int reqCount = 0;
             foreach (var reqType in template.RequiredRooms)
             {
                 if (placedReqTypes.Contains(reqType)) continue;
@@ -118,11 +101,18 @@ namespace ProceduralGeneration
                 var availablePoints = nodes.Where(n => freeSockets[n] > 0).ToList();
                 if (availablePoints.Count == 0) break;
                 
-                var branchPoint = availablePoints[UnityEngine.Random.Range(0, availablePoints.Count)];
+                int targetFloor = (reqCount % 2 == 0) ? 1 : 2;
+                if (template.NumberOfFloors == 1) targetFloor = 1;
+                
+                var floorPoints = availablePoints.Where(n => n.Floor == targetFloor).ToList();
+                if (floorPoints.Count == 0) floorPoints = availablePoints; // Fallback
+                
+                var branchPoint = floorPoints[UnityEngine.Random.Range(0, floorPoints.Count)];
                 var newNode = AddNode(reqType, branchPoint.Floor, branchPoint);
                 freeSockets[branchPoint]--;
                 freeSockets[newNode] = GetMaxSockets(newNode.RoomType) - 1;
                 placedReqTypes.Add(reqType);
+                reqCount++;
             }
 
             // Ensure Generator is placed
@@ -145,8 +135,14 @@ namespace ProceduralGeneration
                 var availablePoints = nodes.Where(n => freeSockets[n] > 0).ToList();
                 if (availablePoints.Count == 0) break; // Cannot grow anymore
                 
+                int targetFloor = (currentRooms % 2 == 0) ? 1 : 2;
+                if (template.NumberOfFloors == 1) targetFloor = 1;
+                
+                var floorPoints = availablePoints.Where(n => n.Floor == targetFloor).ToList();
+                if (floorPoints.Count == 0) floorPoints = availablePoints; // Fallback
+                
                 var randomOpt = template.OptionalRooms[UnityEngine.Random.Range(0, template.OptionalRooms.Count)];
-                var branchPoint = availablePoints[UnityEngine.Random.Range(0, availablePoints.Count)];
+                var branchPoint = floorPoints[UnityEngine.Random.Range(0, floorPoints.Count)];
                 
                 var newNode = AddNode(randomOpt.RoomType, branchPoint.Floor, branchPoint);
                 freeSockets[branchPoint]--;
