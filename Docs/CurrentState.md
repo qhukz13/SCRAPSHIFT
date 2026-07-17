@@ -52,6 +52,7 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
 - [x] PipeAlignMinigame.
 - [x] Implement random item spawning across procedurally generated ships (`ItemSpawner` for Wrench and ScrapItem).
 - [x] Verify and set up mission managers (`TaskManager`, `MissionFlowController`) on `GameManager` in `main.unity`.
+- [x] Fix procedural generation (V2) bugs: Room_Stairs curb/step issues, delete leftover test objects.
 
 ## In Development / Next Steps
 - **Procedural Generation (Prefabs):** Transition ship generation from primitive blockouts to using pre-configured room prefabs (e.g., large Reactor room, Generator room).
