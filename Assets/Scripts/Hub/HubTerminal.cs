@@ -44,14 +44,24 @@ namespace SpaceMaintenance.Hub
         }
 
         [Rpc(SendTo.Server)]
-        public void RequestPurchaseServerRpc(int price, string upgradeId, RpcParams rpcParams = default)
+        public void RequestPurchaseServerRpc(int price, string itemId, RpcParams rpcParams = default)
         {
             if (EconomyManager.Instance != null && EconomyManager.Instance.TrySpendFunds(price))
             {
-                if (ProgressionManager.Instance != null)
+                ulong senderId = rpcParams.Receive.SenderClientId;
+                if (NetworkManager.Singleton.ConnectedClients.TryGetValue(senderId, out var client) && client.PlayerObject != null)
                 {
-                    ProgressionManager.Instance.UnlockUpgrade(upgradeId);
-                    // Notify client of success if needed, but the Economy UI will update automatically
+                    var inventory = client.PlayerObject.GetComponent<SpaceMaintenance.Player.Inventory.PlayerInventory>();
+                    if (inventory != null)
+                    {
+                        bool success = inventory.AddItem(itemId);
+                        if (!success)
+                        {
+                            // Refund if inventory is full
+                            EconomyManager.Instance.AddFunds(price);
+                            Debug.LogWarning($"[HubTerminal] Inventory full for client {senderId}, refunded ${price}.");
+                        }
+                    }
                 }
             }
         }

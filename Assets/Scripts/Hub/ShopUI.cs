@@ -51,9 +51,9 @@ namespace SpaceMaintenance.Hub
             _fundsText.color = Color.green;
 
             // Items
-            CreateShopItem("Pro Flashlight ($100)", "Double battery capacity", 100, "ProFlashlight", new Vector2(0.1f, 0.5f), new Vector2(0.9f, 0.65f));
-            CreateShopItem("Adrenaline ($150)", "Increases max sprint stamina", 150, "Adrenaline", new Vector2(0.1f, 0.3f), new Vector2(0.9f, 0.45f));
-            CreateShopItem("Wrench Upgrade ($200)", "Repairs pipes 50% faster", 200, "WrenchUpgrade", new Vector2(0.1f, 0.1f), new Vector2(0.9f, 0.25f));
+            CreateShopItem("Extinguisher ($100)", "Extinguishes fires from broken wiring", 100, "Extinguisher", new Vector2(0.1f, 0.5f), new Vector2(0.9f, 0.65f));
+            CreateShopItem("Advanced Scanner ($150)", "Highlights broken objects through walls", 150, "Scanner", new Vector2(0.1f, 0.3f), new Vector2(0.9f, 0.45f));
+            CreateShopItem("Welder ($200)", "Fast repair for doors and hulls", 200, "Welder", new Vector2(0.1f, 0.1f), new Vector2(0.9f, 0.25f));
 
             // Close
             var closeBtn = CreateButton("CLOSE", new Vector2(0.85f, 0.9f), new Vector2(0.95f, 0.95f), CloseShop);

@@ -16,12 +16,15 @@ namespace SpaceMaintenance.Player
         [SerializeField] private LayerMask _grabbableLayer;
 
         private PlayerInputHandler _input;
+        private PlayerController _player;
         private IGrabbable _grabbedObject;
+        public IGrabbable GrabbedObject => _grabbedObject;
         private Camera _mainCamera;
 
         private void Awake()
         {
             _input = GetComponent<PlayerInputHandler>();
+            _player = GetComponent<PlayerController>();
             _mainCamera = GetComponentInChildren<Camera>();
             if (_mainCamera == null) _mainCamera = Camera.main;
         }
@@ -70,7 +73,7 @@ namespace SpaceMaintenance.Player
             if (Physics.Raycast(_mainCamera.transform.position, _mainCamera.transform.forward, out RaycastHit hit, _grabRange, _grabbableLayer))
             {
                 var grabbable = hit.collider.GetComponentInParent<IGrabbable>();
-                if (grabbable != null && !grabbable.IsGrabbed)
+                if (grabbable != null && grabbable.CanBeGrabbed(gameObject))
                 {
                     _grabbedObject = grabbable;
                     
@@ -82,6 +85,7 @@ namespace SpaceMaintenance.Player
                     }
 
                     _grabbedObject.OnGrab(gameObject);
+                    _player.ChangeState(_player.CarryingState);
                 }
             }
         }
@@ -107,9 +111,19 @@ namespace SpaceMaintenance.Player
                     rb.linearDamping = 0f;
                 }
 
-                _grabbedObject.OnRelease();
+                _grabbedObject.OnRelease(gameObject);
                 _grabbedObject = null;
+                
+                if (_player != null && _player.IsOwner)
+                {
+                    _player.ChangeState(_player.IdleState);
+                }
             }
+        }
+
+        public void ForceRelease()
+        {
+            Release();
         }
 
         private void Throw()
@@ -124,7 +138,7 @@ namespace SpaceMaintenance.Player
                 }
 
                 Vector3 force = _mainCamera.transform.forward * _throwForce;
-                _grabbedObject.OnThrow(force);
+                _grabbedObject.OnThrow(gameObject, force);
                 
                 // For safety if OnThrow doesn't apply the physics force
                 if (rb != null)
@@ -133,6 +147,11 @@ namespace SpaceMaintenance.Player
                 }
 
                 _grabbedObject = null;
+                
+                if (_player != null && _player.IsOwner)
+                {
+                    _player.ChangeState(_player.IdleState);
+                }
             }
         }
     }

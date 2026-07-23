@@ -8,13 +8,15 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
 - **Multiplayer & Networking:** Unity Lobby, Relay, and Netcode for GameObjects. Fully networked Player Controller.
 - **Interaction & Inventory:** Physics Grab system for moving items, basic inventory slots, and `IInteractable` raycast logic.
 - **Ship Systems (Foundation):**
-  - **Reactor Controller:** Full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown), SCRAM emergency shutdown.
+  - **Reactor Controller:** Full state machine (Offline → Starting → Running → Overheating → Critical → Meltdown), SCRAM emergency shutdown. Interaction bug fixed.
   - **Door Controller:** State machine (Open / Closed / Locked / Broken), `IPowered` integration (auto-open on power loss), lock bypass.
   - **Power Manager:** Priority-based power distribution, shutting down low-priority systems when power drops.
   - **Generator Controller:** Break/repair cycle integrated with the power grid. Now uses `IMinigameRepairable` for minigame-based repair (WireConnect).
   - **Terminal Controller:** Interactive system that uses `SequenceInput` minigame when broken.
   - **Life Support Controller:** Interactive system that uses `PressureBalance` minigame when broken.
+  - **Heavy Fuse Mechanic:** Cooperative object carrying mechanic. When two players hold the fuse, they enter "GluedMode", forcing one player to walk backward while locked in front of the leader.
 - **Chaos System:** Framework capable of injecting events (Generator Break, Door Jam, Door Lock, Reactor Surge, Power Drain). Now **phase-aware** — only fires during Active mission phase with configurable start delay.
+- **Progression & Base Hub:** Added `EconomyManager` (now properly persistent) and a basic `HubTerminal` Shop UI for purchasing items. `DeveloperConsole` added with cheat commands (money, spawn, speed, heal).
 - **Game Loop Base:** `MissionManager`, `WinLoseEvaluator`, `RoundManager`, Mission UI (HUD, Result Screens).
 - **Dark Ship Flow (`MissionFlowController`):**
   - Missions start with the ship completely unpowered (DarkShip phase).
@@ -63,4 +65,3 @@ This document reflects the actual, currently implemented systems in the SCRAPSHI
 - **Networking:**
   - Handle player disconnect during active missions gracefully.
 - **Additional Minigames:** SequenceInput, PressureBalance, CircuitTrace.
-- **Progression & Base Hub:** No economy, upgrades, or base hub exist yet.

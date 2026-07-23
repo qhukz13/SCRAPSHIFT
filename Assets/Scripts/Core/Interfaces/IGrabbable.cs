@@ -16,11 +16,8 @@ namespace SpaceMaintenance.Core
         /// <summary>Weight affects carry speed and throw distance.</summary>
         float Weight { get; }
 
-        /// <summary>Whether this object is currently held by a player.</summary>
-        bool IsGrabbed { get; }
-
-        /// <summary>The player currently holding this object (null if not grabbed).</summary>
-        GameObject GrabbedBy { get; }
+        /// <summary>Checks if this object can be grabbed by the specified player.</summary>
+        bool CanBeGrabbed(GameObject grabber);
 
         /// <summary>The Rigidbody of this grabbable object.</summary>
         Rigidbody Rigidbody { get; }
@@ -28,10 +25,10 @@ namespace SpaceMaintenance.Core
         /// <summary>Called when a player grabs this object.</summary>
         void OnGrab(GameObject grabber);
 
-        /// <summary>Called when the object is released without throwing.</summary>
-        void OnRelease();
+        /// <summary>Called when a specific grabber releases the object without throwing.</summary>
+        void OnRelease(GameObject grabber);
 
-        /// <summary>Called when the object is thrown with force.</summary>
-        void OnThrow(Vector3 force);
+        /// <summary>Called when a specific grabber throws the object with force.</summary>
+        void OnThrow(GameObject grabber, Vector3 force);
     }
 }

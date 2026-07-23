@@ -43,6 +43,7 @@ namespace SpaceMaintenance.Player
         public PlayerJumpingState  JumpingState  { get; private set; }
         public PlayerFallingState  FallingState  { get; private set; }
         public PlayerCarryingState CarryingState { get; private set; }
+        public PlayerGluedState    GluedState    { get; private set; }
 
         // ─── Runtime ────────────────────────────────────────────────────
         public bool  IsGrounded         { get; private set; }
@@ -79,6 +80,7 @@ namespace SpaceMaintenance.Player
             JumpingState  = new PlayerJumpingState(this);
             FallingState  = new PlayerFallingState(this);
             CarryingState = new PlayerCarryingState(this);
+            GluedState    = new PlayerGluedState(this);
         }
 
         public override void OnNetworkDespawn()
@@ -392,6 +394,28 @@ namespace SpaceMaintenance.Player
                     }
                 }
             }
+        }
+        [ServerRpc(RequireOwnership = false)]
+        public void CheatSpawnItemServerRpc(string prefabName, Vector3 position)
+        {
+            if (!IsServer) return;
+
+            var networkPrefabs = NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs;
+            foreach (var netPrefab in networkPrefabs)
+            {
+                if (netPrefab.Prefab != null && netPrefab.Prefab.name.ToLower().Contains(prefabName.ToLower()))
+                {
+                    var go = Instantiate(netPrefab.Prefab, position, Quaternion.identity);
+                    var netObj = go.GetComponent<NetworkObject>();
+                    if (netObj != null)
+                    {
+                        netObj.Spawn();
+                        Debug.Log($"[Cheat] Spawned {netPrefab.Prefab.name} at {position}");
+                    }
+                    return;
+                }
+            }
+            Debug.Log($"[Cheat] Prefab '{prefabName}' not found in NetworkManager.");
         }
     }
 }

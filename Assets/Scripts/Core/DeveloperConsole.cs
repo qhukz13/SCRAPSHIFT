@@ -125,7 +125,7 @@ namespace SpaceMaintenance.Core
         private void RegisterCommands()
         {
             _commands.Add("help", args => {
-                Log("Available commands: help, noclip, tp/thirdperson, godmode, heal");
+                Log("Available commands: help, noclip, tp, godmode, heal, money <amount>, speed <value>, gravity <value>, spawn <item_name>");
             });
 
             _commands.Add("noclip", args => {
@@ -157,6 +157,59 @@ namespace SpaceMaintenance.Core
                     Log("Hull repaired to maximum.");
                 }
                 else Log("DamageManager not found!");
+            });
+
+            _commands.Add("money", args => {
+                if (args.Length > 0 && int.TryParse(args[0], out int amount))
+                {
+                    if (SpaceMaintenance.Core.EconomyManager.Instance != null)
+                    {
+                        SpaceMaintenance.Core.EconomyManager.Instance.CheatAddFundsServerRpc(amount);
+                        Log($"Requested ${amount} funds from server.");
+                    }
+                    else Log("EconomyManager not found!");
+                }
+                else Log("Usage: money <amount>");
+            });
+
+            _commands.Add("spawn", args => {
+                if (args.Length > 0)
+                {
+                    var player = FindObjectOfType<PlayerController>();
+                    if (player != null)
+                    {
+                        string prefabName = args[0];
+                        Vector3 spawnPos = player.transform.position + player.transform.forward * 2f + Vector3.up * 1f;
+                        player.CheatSpawnItemServerRpc(prefabName, spawnPos);
+                        Log($"Requested server to spawn '{prefabName}'.");
+                    }
+                    else Log("PlayerController not found!");
+                }
+                else Log("Usage: spawn <item_name> (e.g., spawn wrench, spawn scanner, spawn heavyfuse)");
+            });
+
+            _commands.Add("speed", args => {
+                if (args.Length > 0 && float.TryParse(args[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float speed))
+                {
+                    var player = FindObjectOfType<PlayerController>();
+                    if (player != null && player.Config != null)
+                    {
+                        player.Config.MoveSpeed = speed;
+                        player.Config.SprintSpeed = speed * 1.5f;
+                        Log($"Set movement speed to {speed} (Sprint: {speed * 1.5f})");
+                    }
+                    else Log("Player or PlayerMovementConfig not found!");
+                }
+                else Log("Usage: speed <value>");
+            });
+
+            _commands.Add("gravity", args => {
+                if (args.Length > 0 && float.TryParse(args[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float grav))
+                {
+                    Physics.gravity = new Vector3(0, grav, 0);
+                    Log($"Gravity set to {grav}");
+                }
+                else Log("Usage: gravity <value>");
             });
         }
 

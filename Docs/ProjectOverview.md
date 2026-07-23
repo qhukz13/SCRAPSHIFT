@@ -9,7 +9,7 @@
 - **The Payoff:** Earn money for successful repairs, return to base, and purchase upgrades to handle increasingly difficult shifts.
 
 ## Key Features (Vision)
-- **Procedural Generation:** Every shift offers a new ship layout, a different combination of failures, varying task lists, and dynamic timers.
+- **Procedural Generation:** *(Being rewritten/handled by a friend, AI is no longer working on this component).* Every shift offers a new ship layout, a different combination of failures, varying task lists, and dynamic timers.
 - **Minigame-Based Repairs:** Every ship system (reactor, doors, generators, pipes) features its own unique, scalable minigame that is easy to learn but hard to master.
 - **Task Prioritization:** Manage critical, high, medium, and low priority tasks. Ignoring a critical task with a time limit means mission failure.
 - **Progression System:** Spend hard-earned credits at the base hub on better tools, faster repair speeds, larger inventory, and new abilities.

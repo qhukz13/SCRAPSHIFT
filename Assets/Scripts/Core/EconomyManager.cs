@@ -62,6 +62,12 @@ namespace SpaceMaintenance.Core
             Debug.Log($"[Economy] Added ${amount}. Total: ${CompanyFunds.Value}");
         }
 
+        [ServerRpc(RequireOwnership = false)]
+        public void CheatAddFundsServerRpc(int amount)
+        {
+            AddFunds(amount);
+        }
+
         /// <summary>Attempt to spend funds. Returns true if successful. Server only.</summary>
         public bool TrySpendFunds(int amount)
         {

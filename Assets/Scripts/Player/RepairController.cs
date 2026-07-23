@@ -58,7 +58,14 @@ namespace SpaceMaintenance.Player
 
                 if (CurrentRepairTarget != null)
                 {
-                    RequestUpdateRepairServerRpc(_currentTargetId, Time.deltaTime);
+                    float dt = Time.deltaTime;
+                    var inventory = GetComponent<SpaceMaintenance.Player.Inventory.PlayerInventory>();
+                    if (inventory != null && inventory.HasItem("Welder"))
+                    {
+                        dt *= 2f;
+                    }
+                    
+                    RequestUpdateRepairServerRpc(_currentTargetId, dt);
                     
                     if (!CurrentRepairTarget.NeedsRepair)
                     {

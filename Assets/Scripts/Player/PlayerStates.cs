@@ -332,16 +332,76 @@ namespace SpaceMaintenance.Player.States
 
         public override void Execute()
         {
-            // Cannot sprint or crouch while carrying
-            Player.Move(Player.Input.MoveInput, Player.Config.CarrySpeedMultiplier);
+            float speedMult = Player.Config.CarrySpeedMultiplier;
+            bool canJump = true;
 
-            if (Player.Input.JumpInput && Player.IsGrounded)
+            var grabCtrl = Player.GetComponent<PhysicsGrabController>();
+            if (grabCtrl != null && grabCtrl.GrabbedObject is SpaceMaintenance.ShipSystems.HeavyFuse fuse)
+            {
+                if (fuse.GrabberClientIds.Count >= 2)
+                {
+                    speedMult = 0.8f; // Two players carry it well
+                }
+                else
+                {
+                    speedMult = 0.2f; // Single player struggles
+                    canJump = false; // Too heavy to jump
+                }
+            }
+
+            // Cannot sprint or crouch while carrying
+            Player.Move(Player.Input.MoveInput, speedMult);
+
+            if (canJump && Player.Input.JumpInput && Player.IsGrounded)
             {
                 Player.Jump();
                 Player.Input.ConsumeJumpInput();
             }
 
             // Drop logic handled by PhysicsGrabController
+        }
+    }
+
+    // =====================================================================
+    //  GLUED — forced to follow the leader while carrying Heavy Fuse
+    // =====================================================================
+
+    public class PlayerGluedState : PlayerState
+    {
+        public PlayerController Leader { get; set; }
+
+        public PlayerGluedState(PlayerController player) : base(player) { }
+
+        public override void Enter()
+        {
+            Player.Rb.useGravity = false;
+            Player.Rb.linearVelocity = Vector3.zero;
+        }
+
+        public override void Execute()
+        {
+            if (Leader == null)
+            {
+                Player.ChangeState(Player.IdleState);
+                return;
+            }
+
+            // Lock position in front of the leader, facing the leader
+            Vector3 targetPos = Leader.transform.position + Leader.transform.forward * 1.5f;
+            Vector3 lookPos = Leader.transform.position;
+            lookPos.y = Player.transform.position.y;
+            
+            Player.Rb.MovePosition(targetPos);
+            Player.Rb.MoveRotation(Quaternion.LookRotation(lookPos - Player.transform.position));
+            
+            // Prevent normal movement inputs
+            Player.Rb.linearVelocity = Vector3.zero;
+        }
+
+        public override void Exit()
+        {
+            Player.Rb.useGravity = true;
+            Leader = null;
         }
     }
 }

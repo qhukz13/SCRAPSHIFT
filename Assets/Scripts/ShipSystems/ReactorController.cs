@@ -301,6 +301,8 @@ namespace SpaceMaintenance.ShipSystems
         {
             if (!IsSpawned) return;
 
+            Debug.Log($"[ReactorController] OnInteract called by {player.name}");
+
             if (!IsServer)
             {
                 RequestInteractServerRpc();
@@ -312,8 +314,8 @@ namespace SpaceMaintenance.ShipSystems
         public void OnInteractHold(GameObject player, float holdTime) { }
         public void OnInteractRelease(GameObject player) { }
 
-        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void RequestInteractServerRpc()
+        [ServerRpc(RequireOwnership = false)]
+        public void RequestInteractServerRpc()
         {
             HandleInteraction();
         }

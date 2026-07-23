@@ -25,9 +25,18 @@ namespace SpaceMaintenance.ShipSystems
         public int MinigameDifficulty => 1 + SpaceMaintenance.Core.GlobalMissionParameters.MissionsCompleted; // Scales with subsequent missions
 
         // IInteractable
-        public string InteractionPrompt => NeedsRepair ? "Press E to Repair (Minigame)" : "Generator Online";
+        public string InteractionPrompt
+        {
+            get
+            {
+                if (NetworkNeedsFuse.Value) return "Requires Heavy Fuse";
+                return NeedsRepair ? "Press E to Repair (Minigame)" : "Generator Online";
+            }
+        }
         public bool RequiresHold => false;
         public float HoldDuration => 0f;
+
+        public NetworkVariable<bool> NetworkNeedsFuse = new NetworkVariable<bool>(false);
 
         public override void OnNetworkSpawn()
         {
@@ -41,6 +50,28 @@ namespace SpaceMaintenance.ShipSystems
         public void StartRepair(GameObject repairer)
         {
             if (!IsServer || !NeedsRepair) return;
+            
+            if (NetworkNeedsFuse.Value)
+            {
+                var grabCtrl = repairer.GetComponent<SpaceMaintenance.Player.PhysicsGrabController>();
+                if (grabCtrl != null && grabCtrl.GrabbedObject is HeavyFuse fuse)
+                {
+                    grabCtrl.ForceRelease();
+                    var netObj = fuse.GetComponent<NetworkObject>();
+                    if (netObj != null && netObj.IsSpawned) netObj.Despawn(true);
+                    
+                    NetworkNeedsFuse.Value = false;
+                    
+                    if (AudioManager.Instance != null && AudioManager.Instance.Database != null)
+                    {
+                        AudioManager.Instance.PlaySFX(AudioManager.Instance.Database.PickupItem, transform.position);
+                    }
+                    
+                    EventBus.Publish(new SpaceMaintenance.Core.Data.SystemRepairedEvent { SystemName = "Heavy Fuse Replaced" });
+                }
+                return;
+            }
+
             IsBeingRepaired = true;
         }
 
@@ -68,6 +99,12 @@ namespace SpaceMaintenance.ShipSystems
             NetworkRepairProgress.Value = 0f;
             IsBeingRepaired = false;
             
+            // 30% chance to blow a fuse instead of standard repair!
+            if (Random.value < 0.3f)
+            {
+                NetworkNeedsFuse.Value = true;
+            }
+
             if (PowerManager.Instance != null && _config != null)
             {
                 PowerManager.Instance.ConsumePower(_config.GeneratorPowerOutput);

@@ -46,7 +46,15 @@ namespace SpaceMaintenance.Missions
             if (!IsServer) return;
             
             TasksCompleted.Value++;
-            Debug.Log($"[MissionManager] System repaired: {evt.SystemName} (Total: {TasksCompleted.Value})");
+            
+            // Economy Reward: Give the company funds for successful repairs.
+            int rewardAmount = UnityEngine.Random.Range(20, 51); // 20 to 50 scrap per repair
+            if (EconomyManager.Instance != null)
+            {
+                EconomyManager.Instance.AddFunds(rewardAmount);
+            }
+
+            Debug.Log($"[MissionManager] System repaired: {evt.SystemName} (Total: {TasksCompleted.Value}). Earned ${rewardAmount} Scrap.");
         }
     }
 }
