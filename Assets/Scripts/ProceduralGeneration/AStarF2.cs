@@ -74,7 +74,11 @@ namespace ProceduralGeneration
                             newRoom.Initialize(newRoomDef, 2);
                             newRoom.transform.position = pt;
                             
-                            if (i > 0)
+                            if (i == 0)
+                            {
+                                newRoom.transform.rotation = Quaternion.LookRotation(startForward.normalized);
+                            }
+                            else
                             {
                                 Vector3 dir = pt - path[i-1];
                                 if (dir.sqrMagnitude > 0.1f)
