@@ -38,11 +38,12 @@ namespace ProceduralGeneration
             switch (type)
             {
                 case RoomType.Reactor: return 8; // Central hub, many doors
-                case RoomType.Generator: return 2; // Often a pass-through
+                case RoomType.Generator: return 4;
                 case RoomType.Crossroad: return 4;
                 // Stairs only have 2 sockets per floor. 1 is for parent, 1 is for the opposite floor.
                 // We must not allow random same-floor rooms to attach to Stairs, or it runs out of sockets.
-                case RoomType.Stairs: return 2; 
+                case RoomType.Stairs: return 1; // Only 1 horizontal socket available on F1
+                case RoomType.Storage: return 12;
                 case RoomType.Corridor: return 2;
                 case RoomType.Spawn: return 1;
                 case RoomType.Bridge: return 1;
