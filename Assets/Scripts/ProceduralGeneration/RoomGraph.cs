@@ -127,9 +127,22 @@ namespace ProceduralGeneration
             }
 
             // 4. (Stairs are now explicitly placed in the graph for F2 transitions)
+            if (floor2 == 2)
+            {
+                // Force place Bridge on F1 since we didn't place it on F2
+                var availableForBridge = nodes.Where(n => freeSockets[n] > 0).ToList();
+                if (availableForBridge.Count > 0)
+                {
+                    var parentNode = availableForBridge[UnityEngine.Random.Range(0, availableForBridge.Count)];
+                    var bridgeNode = AddNode(RoomType.Bridge, 1, parentNode);
+                    freeSockets[parentNode]--;
+                    freeSockets[bridgeNode] = GetMaxSockets(bridgeNode.RoomType) - 1;
+                }
+            }
 
             // 5. Attach other required rooms
             List<RoomType> placedReqTypes = new List<RoomType> { RoomType.Spawn, RoomType.Bridge, RoomType.Reactor, RoomType.Corridor, RoomType.Crossroad, RoomType.Stairs };
+
             int reqCount = 0;
             foreach (var reqType in template.RequiredRooms)
             {
