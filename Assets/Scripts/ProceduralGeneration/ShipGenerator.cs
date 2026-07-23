@@ -59,6 +59,13 @@ namespace ProceduralGeneration
 
             while (!success && retries < Settings.MaxGraphGenerationRetries)
             {
+                if (Settings.UseRandomSeed && retries > 0)
+                {
+                    Settings.Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+                    UnityEngine.Random.InitState(Settings.Seed);
+                    Debug.Log($"Generation Retry Seed: {Settings.Seed}");
+                }
+
                 // 3. Build Room Graph
                 currentGraph = BuildRoomGraph(Template);
                 
