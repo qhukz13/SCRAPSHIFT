@@ -2275,7 +2275,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 616112814
+  GlobalObjectIdHash: 1909942787
   InScenePlacedSourceGlobalObjectIdHash: 1909942787
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2303,7 +2303,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RoomType: 4
   RoomCategory: 0
-  RoomTags: 0
+  RoomTags: 2
   RoomSize: {x: 3, y: 1, z: 2}
   RoomBounds:
     m_Center: {x: 0, y: 5, z: 0}

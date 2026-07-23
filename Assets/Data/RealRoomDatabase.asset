@@ -26,17 +26,17 @@ MonoBehaviour:
   - Prefab: {fileID: 1547620132875304146, guid: a56498ad589c69d48824e18e1fda5d7d, type: 3}
     RoomType: 5
     RoomCategory: 0
-    RoomTags: 0
+    RoomTags: 512
     DifficultyWeight: 1
     SpawnWeight: 1
     AllowedFloors: 0100000002000000
     MinimumDifficulty: 0
     MaximumDifficulty: 100
     ConnectionRules: 
-  - Prefab: {fileID: -5758658815635692464, guid: 5e1cd88185c5a2742b0a7bdac5faf1d8, type: 3}
+  - Prefab: {fileID: -5758658815635692464, guid: c68cea23c67c8004f9fc796f32f30e10, type: 3}
     RoomType: 9
     RoomCategory: 0
-    RoomTags: 0
+    RoomTags: 8
     DifficultyWeight: 1
     SpawnWeight: 1
     AllowedFloors: 0100000002000000
@@ -76,7 +76,7 @@ MonoBehaviour:
   - Prefab: {fileID: 5200033258067333067, guid: cf8b7a02cdde4794d97e333fd212f8a2, type: 3}
     RoomType: 4
     RoomCategory: 0
-    RoomTags: 0
+    RoomTags: 2
     DifficultyWeight: 1
     SpawnWeight: 1
     AllowedFloors: 0100000002000000

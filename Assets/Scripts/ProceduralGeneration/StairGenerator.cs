@@ -22,7 +22,10 @@ namespace ProceduralGeneration
                         Vector3 socketPos = room.transform.TransformPoint(socket.LocalPosition);
                         
                         // Spawn vertical connection (ladder/stair/elevator shaft)
-                        GameObject stair = Object.Instantiate(stairPrefab, socketPos, Quaternion.identity);
+                        Vector3 socketWorldDir = room.transform.TransformDirection(socket.LocalDirection);
+                        Quaternion stairRotation = Quaternion.LookRotation(-socketWorldDir);
+                        
+                        GameObject stair = Object.Instantiate(stairPrefab, socketPos, stairRotation);
                         stair.name = $"VerticalConnection_{room.name}";
                         stair.transform.SetParent(room.transform);
                     }

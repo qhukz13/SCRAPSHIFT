@@ -172,8 +172,32 @@ namespace ProceduralGeneration
                         if (!hasPlug)
                         {
                             // Missing visual plug on an unused socket (e.g., Reactor F2 sockets)!
-                            // Mark as used so DoorGenerator spawns a locked Airlock door here to seal the void.
-                            socket.IsUsed = true;
+                            // Create a runtime plug to seal the void instead of forcing a door
+                            GameObject newPlug = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                            newPlug.name = $"SocketPlug_{socket.LocalPosition.x}_{socket.LocalPosition.y}_{socket.LocalPosition.z}_Runtime";
+                            newPlug.transform.SetParent(visuals);
+                            
+                            // Align with socket
+                            newPlug.transform.localPosition = socket.LocalPosition + new Vector3(0, 2f, 0); // Typical plug Y offset
+                            newPlug.transform.localRotation = Quaternion.LookRotation(socket.LocalDirection);
+                            
+                            // Make it large enough to seal the hole (typical plug size is 4x4x1)
+                            newPlug.transform.localScale = new Vector3(4f, 4f, 1f);
+                            
+                            // Try to match material from an existing wall
+                            var renderer = newPlug.GetComponent<Renderer>();
+                            foreach (Transform sibling in visuals)
+                            {
+                                if (sibling.name.StartsWith("WallSegment"))
+                                {
+                                    var siblingRenderer = sibling.GetComponent<Renderer>();
+                                    if (siblingRenderer != null)
+                                    {
+                                        renderer.sharedMaterial = siblingRenderer.sharedMaterial;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -103,7 +103,7 @@ namespace SpaceMaintenance.Player
             // Disable any camera tagged as MainCamera that isn't ours
             foreach (var cam in FindObjectsOfType<Camera>())
             {
-                if (cam.CompareTag("MainCamera") && cam.gameObject != CameraController.gameObject)
+                if (cam.CompareTag("MainCamera") && !cam.transform.IsChildOf(transform))
                 {
                     cam.gameObject.SetActive(false);
                 }

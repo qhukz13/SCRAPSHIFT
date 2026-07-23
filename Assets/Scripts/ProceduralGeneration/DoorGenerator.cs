@@ -83,6 +83,15 @@ namespace ProceduralGeneration
                     if (doorController == null) doorController = doorObj.AddComponent<DoorController>();
 
                     doorController.Initialize(s1.Room, null);
+                    if (doorController.IsServer)
+                    {
+                        doorController.SetLocked(true);
+                    }
+                    else
+                    {
+                        // If generation happens before network spawn or offline
+                        doorController.IsLocked.Value = true;
+                    }
 
                     var netObj = doorObj.GetComponent<NetworkObject>();
                     if (netObj != null) netObj.Spawn();
