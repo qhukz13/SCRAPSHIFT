@@ -15,9 +15,9 @@ MonoBehaviour:
   ShipName: Real Cargo Ship
   Difficulty: 1
   NumberOfFloors: 2
-  MinimumRooms: 5
-  MaximumRooms: 30
-  RequiredRooms: 0000000004000000
+  MinimumRooms: 10
+  MaximumRooms: 15
+  RequiredRooms: 000000000400000005000000
   OptionalRooms:
   - RoomType: 9
     MinCount: 3

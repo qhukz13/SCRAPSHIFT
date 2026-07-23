@@ -59,7 +59,7 @@ namespace ProceduralGeneration
             // 1. Create Central Hub (Reactor)
             RoomNode reactorNode = AddNode(RoomType.Reactor, 1);
 
-            int f1Length = Mathf.Clamp(targetRooms / 4, 2, 6);
+            int f1Length = Mathf.Max(targetRooms / 4, 3);
             
             // 2. Generate Floor 1 Spine (towards Spawn)
             RoomNode currentF1 = reactorNode;
@@ -70,18 +70,7 @@ namespace ProceduralGeneration
             }
             AddNode(RoomType.Spawn, 1, currentF1);
 
-            // 3. Generate Floor 2 Spine (towards Bridge) OR alternative Floor 1 Spine
-            RoomNode currentF2 = reactorNode;
-            int floor2 = template.NumberOfFloors > 1 ? 2 : 1;
-            
-            for (int i = 0; i < f1Length; i++)
-            {
-                RoomType type = (i % 2 == 0) ? RoomType.Corridor : RoomType.Crossroad;
-                currentF2 = AddNode(type, floor2, currentF2);
-            }
-            AddNode(RoomType.Bridge, floor2, currentF2);
-
-            // Calculate free sockets for each node
+            // Calculate free sockets for each node initially
             Dictionary<RoomNode, int> freeSockets = new Dictionary<RoomNode, int>();
             foreach (var node in nodes)
             {
@@ -89,10 +78,57 @@ namespace ProceduralGeneration
                 freeSockets[node] = GetMaxSockets(node.RoomType) - used;
             }
 
-            // 4. (Stairs are now dynamically placed by RoomPlacer as cycles between F1 and F2)
+            // 3. Generate Floor 2 Spines (towards Bridge) OR alternative Floor 1 Spine
+            int floor2 = template.NumberOfFloors > 1 ? 2 : 1;
+            
+            if (floor2 == 2)
+            {
+                // Generate 3-4 stairs on F1 that point up to F2.
+                // We will connect them dynamically via A* in RoomPlacer later.
+                int numStairs = UnityEngine.Random.Range(3, 5);
+                List<RoomNode> placedStairs = new List<RoomNode>();
+
+                for (int s = 0; s < numStairs; s++)
+                {
+                    // To keep stairs spaced out, pick nodes on F1 with high depth and avoid clustering
+                    var availableF1 = nodes.Where(n => n.Floor == 1 && freeSockets[n] > 0 
+                        && !n.ConnectedNodes.Any(c => c.RoomType == RoomType.Stairs))
+                        .OrderByDescending(n => n.Depth)
+                        .ToList();
+                    
+                    if (availableF1.Count == 0) break;
+                    
+                    // Pick from the furthest half
+                    int maxIndex = Mathf.Max(1, availableF1.Count / 2);
+                    var parentNodeF1 = availableF1[UnityEngine.Random.Range(0, maxIndex)];
+                    
+                    // Assign Floor=1 so RoomPlacer positions the stairs at Y=0, connecting via its bottom socket.
+                    var stairNode = AddNode(RoomType.Stairs, 1, parentNodeF1);
+                    freeSockets[parentNodeF1]--;
+                    freeSockets[stairNode] = GetMaxSockets(stairNode.RoomType) - 1;
+                    placedStairs.Add(stairNode);
+                }
+            }
+            else
+            {
+                RoomNode currentF2 = reactorNode;
+                for (int i = 0; i < f1Length; i++)
+                {
+                    RoomType type = (i % 2 == 0) ? RoomType.Corridor : RoomType.Crossroad;
+                    var nextNode = AddNode(type, 1, currentF2);
+                    freeSockets[currentF2]--;
+                    freeSockets[nextNode] = GetMaxSockets(nextNode.RoomType) - 1;
+                    currentF2 = nextNode;
+                }
+                var bridge = AddNode(RoomType.Bridge, 1, currentF2);
+                freeSockets[currentF2]--;
+                freeSockets[bridge] = GetMaxSockets(bridge.RoomType) - 1;
+            }
+
+            // 4. (Stairs are now explicitly placed in the graph for F2 transitions)
 
             // 5. Attach other required rooms
-            List<RoomType> placedReqTypes = new List<RoomType> { RoomType.Spawn, RoomType.Bridge, RoomType.Generator, RoomType.Reactor, RoomType.Corridor, RoomType.Crossroad, RoomType.Stairs };
+            List<RoomType> placedReqTypes = new List<RoomType> { RoomType.Spawn, RoomType.Bridge, RoomType.Reactor, RoomType.Corridor, RoomType.Crossroad, RoomType.Stairs };
             int reqCount = 0;
             foreach (var reqType in template.RequiredRooms)
             {

@@ -13,7 +13,7 @@ namespace ProceduralGeneration
         private List<RoomInstance> placed = new List<RoomInstance>();
 
         private int currentIterations = 0;
-        private const int MaxIterations = 200000;
+        private const int MaxIterations = 100000;
 
         public RoomPlacer(Transform root, RoomDatabase db, GenerationSettings genSettings)
         {
@@ -62,110 +62,13 @@ namespace ProceduralGeneration
                 return false;
             }
 
-            CreateDynamicStairs();
+            // 2.5 Use A* to pathfind on F2 and connect the stairs and Reactor dynamically
+            AStarF2.ConnectF2(this, placed, roomDatabase, settings, shipRoot);
+
             CreateDynamicCycles();
             ProcessWallPlugs();
             placedRooms.AddRange(placed);
             return true;
-        }
-
-        private void CreateDynamicStairs()
-        {
-            var stairsPrefabEntry = roomDatabase.Rooms.FirstOrDefault(r => r.RoomType == RoomType.Stairs);
-            if (stairsPrefabEntry == null || stairsPrefabEntry.Prefab == null) return;
-            var stairsPrefab = stairsPrefabEntry.Prefab;
-
-            int targetStairs = UnityEngine.Random.Range(4, 7);
-            int placedStairs = 0;
-            List<Vector3> placedStairPositions = new List<Vector3>();
-            float minStairDistance = 15f; // Minimum distance between any two stairs (about 1.5 rooms apart)
-
-            var f1Sockets = new List<(RoomInstance room, DoorSocket sock, Vector3 pos, Vector3 dir)>();
-            var f2Sockets = new List<(RoomInstance room, DoorSocket sock, Vector3 pos, Vector3 dir)>();
-
-            foreach (var room in placed)
-            {
-                foreach (var sock in room.Definition.DoorSockets)
-                {
-                    if (sock.IsUsed) continue;
-                    Vector3 pos = room.transform.TransformPoint(sock.LocalPosition);
-                    Vector3 dir = room.transform.TransformDirection(sock.LocalDirection);
-                    
-                    if (room.Floor == 1) f1Sockets.Add((room, sock, pos, dir));
-                    else if (room.Floor == 2) f2Sockets.Add((room, sock, pos, dir));
-                }
-            }
-
-            // Shuffle sockets for organic distribution
-            System.Random rng = new System.Random();
-            f1Sockets = f1Sockets.OrderBy(a => rng.Next()).ToList();
-            f2Sockets = f2Sockets.OrderBy(a => rng.Next()).ToList();
-
-            foreach (var f1 in f1Sockets)
-            {
-                if (placedStairs >= targetStairs) break;
-                if (f1.sock.IsUsed) continue;
-
-                foreach (var f2 in f2Sockets)
-                {
-                    if (f2.sock.IsUsed) continue;
-
-                    // Condition 1: Must face opposite directions
-                    if (Vector3.Dot(f1.dir, f2.dir) < -0.99f)
-                    {
-                        // Condition 2: F2 must be directly above and 10 units forward relative to F1 socket
-                        Vector3 expectedF2Pos = f1.pos + new Vector3(0, settings.FloorHeight, 0) + (f1.dir * 10f);
-
-                        if (Vector3.Distance(f2.pos, expectedF2Pos) < 0.1f)
-                        {
-                            Vector3 stairPos = f1.pos + f1.dir * 5f;
-                            
-                            // Check distance from already placed stairs
-                            bool tooClose = false;
-                            foreach (var p in placedStairPositions)
-                            {
-                                if (Vector3.Distance(stairPos, p) < minStairDistance)
-                                {
-                                    tooClose = true;
-                                    break;
-                                }
-                            }
-                            if (tooClose) continue;
-
-                            Quaternion stairRot = Quaternion.LookRotation(f1.dir);
-
-                            // Verify collision before placing
-                            RoomInstance dummyInst = stairsPrefab.gameObject.GetComponent<RoomInstance>();
-                            if (dummyInst == null) dummyInst = stairsPrefab.gameObject.AddComponent<RoomInstance>();
-                            
-                            // Let's just instantiate it, test collision, and destroy if failed.
-                            RoomDefinition stairDef = Object.Instantiate(stairsPrefab, shipRoot);
-                            stairDef.name = $"Stairs_Dynamic_{placedStairs}";
-                            RoomInstance stairInst = stairDef.gameObject.AddComponent<RoomInstance>();
-                            stairInst.Initialize(stairDef, 1);
-                            
-                            if (!CheckCollision(stairInst, stairPos, stairRot))
-                            {
-                                stairInst.transform.position = stairPos;
-                                stairInst.transform.rotation = stairRot;
-
-                                f1.sock.IsUsed = true;
-                                f2.sock.IsUsed = true;
-                                foreach (var s in stairDef.DoorSockets) s.IsUsed = true;
-
-                                placed.Add(stairInst);
-                                placedStairPositions.Add(stairPos);
-                                placedStairs++;
-                                break;
-                            }
-                            else
-                            {
-                                Object.DestroyImmediate(stairDef.gameObject);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private void CreateDynamicCycles()
@@ -248,6 +151,29 @@ namespace ProceduralGeneration
                                     Object.Destroy(child.gameObject);
                                 }
                             }
+                        }
+                    }
+                    else
+                    {
+                        // Unused socket. Verify it actually has a physical plug to prevent a void hole.
+                        bool hasPlug = false;
+                        foreach (Transform child in visuals)
+                        {
+                            if (child.name.StartsWith("SocketPlug_"))
+                            {
+                                if (Vector3.Distance(child.localPosition, socket.LocalPosition) < 2.5f)
+                                {
+                                    hasPlug = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (!hasPlug)
+                        {
+                            // Missing visual plug on an unused socket (e.g., Reactor F2 sockets)!
+                            // Mark as used so DoorGenerator spawns a locked Airlock door here to seal the void.
+                            socket.IsUsed = true;
                         }
                     }
                 }
@@ -462,6 +388,8 @@ namespace ProceduralGeneration
 
             foreach (var existing in placed)
             {
+                // Disabled distance check to prevent DFS explosion
+
                 Bounds existingBounds = GetWorldBounds(existing, shrinkVector, existing.transform.position, existing.transform.rotation);
 
                 if (newBounds.Intersects(existingBounds))
@@ -473,23 +401,22 @@ namespace ProceduralGeneration
             return false; // No collision
         }
 
-        private Bounds GetWorldBounds(RoomInstance room, Vector3 shrinkVector, Vector3 pos, Quaternion rot)
+        public List<RoomInstance> GetPlacedRooms() => placed;
+
+        public Bounds GetWorldBoundsForDef(RoomDefinition def, Vector3 shrinkVector, Vector3 pos, Quaternion rot)
         {
-            // Instead of just passing size, we create bounds with original size and center, 
-            // then get the min and max points, transform them, and create a new bounds.
-            Vector3 center = pos + (rot * room.Definition.RoomBounds.center);
-            Vector3 extents = room.Definition.RoomBounds.extents;
+            Vector3 center = pos + (rot * def.RoomBounds.center);
+            Vector3 extents = def.RoomBounds.extents;
             
-            // Transform all 8 corners of the local bounds to world space to get the true AABB
             Vector3[] corners = new Vector3[8];
-            corners[0] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(extents.x, extents.y, extents.z)));
-            corners[1] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(extents.x, extents.y, -extents.z)));
-            corners[2] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(extents.x, -extents.y, extents.z)));
-            corners[3] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(extents.x, -extents.y, -extents.z)));
-            corners[4] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(-extents.x, extents.y, extents.z)));
-            corners[5] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(-extents.x, extents.y, -extents.z)));
-            corners[6] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(-extents.x, -extents.y, extents.z)));
-            corners[7] = pos + (rot * (room.Definition.RoomBounds.center + new Vector3(-extents.x, -extents.y, -extents.z)));
+            corners[0] = pos + (rot * (def.RoomBounds.center + new Vector3(extents.x, extents.y, extents.z)));
+            corners[1] = pos + (rot * (def.RoomBounds.center + new Vector3(extents.x, extents.y, -extents.z)));
+            corners[2] = pos + (rot * (def.RoomBounds.center + new Vector3(extents.x, -extents.y, extents.z)));
+            corners[3] = pos + (rot * (def.RoomBounds.center + new Vector3(extents.x, -extents.y, -extents.z)));
+            corners[4] = pos + (rot * (def.RoomBounds.center + new Vector3(-extents.x, extents.y, extents.z)));
+            corners[5] = pos + (rot * (def.RoomBounds.center + new Vector3(-extents.x, extents.y, -extents.z)));
+            corners[6] = pos + (rot * (def.RoomBounds.center + new Vector3(-extents.x, -extents.y, extents.z)));
+            corners[7] = pos + (rot * (def.RoomBounds.center + new Vector3(-extents.x, -extents.y, -extents.z)));
 
             Vector3 min = corners[0];
             Vector3 max = corners[0];
@@ -500,11 +427,18 @@ namespace ProceduralGeneration
             }
 
             Bounds bounds = new Bounds((min + max) / 2f, max - min);
-            
-            // Apply shrink for padding
             bounds.Expand(-shrinkVector);
-            
             return bounds;
+        }
+
+        public Bounds GetWorldBoundsForInstance(RoomInstance room, Vector3 shrinkVector)
+        {
+            return GetWorldBoundsForDef(room.Definition, shrinkVector, room.transform.position, room.transform.rotation);
+        }
+
+        private Bounds GetWorldBounds(RoomInstance room, Vector3 shrinkVector, Vector3 pos, Quaternion rot)
+        {
+            return GetWorldBoundsForDef(room.Definition, shrinkVector, pos, rot);
         }
     }
 }
